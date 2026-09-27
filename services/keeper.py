@@ -18,7 +18,7 @@ Every 15 minutes it:
      checked in since, final otherwise), and returns reporters' bonds after their one-year hold
      (`releaseBond`);
   6. queues the repayment of every member whose death was undone (`restore`, after `revive`), and
-     applies account recoveries once their 14-day delay has passed (`finishRecovery`);
+     applies account recoveries once their challenge window has passed (`finishRecovery`);
   7. abandons a rebalance stuck for a day (`abortRebalance`), so a paused token or a dry pool can't
      stop anyone's income.
 
@@ -120,7 +120,8 @@ def tick(pk, dep, state):
             log(f'queued the repayment of revived member {m}')
             flags |= QUEUED_RESTORE
         # Once back in the pool, a reported death's held estate goes back to them as well.
-        held = int(values(pool, 'estateOf(uint256)(uint256,uint256)', str(m))[0])
+        e = values(pool, 'estateOf(uint256)(uint256,uint256,uint256)', str(m))
+        held = int(e[0]) + int(e[2])
         if held and not flags & (RELEASED | QUEUED_RESTORE) and send(pk, pool, 'payEstate(uint256)', str(m)):
             log(f'returned the held estate of revived member {m}')
             held = 0
@@ -131,17 +132,18 @@ def tick(pk, dep, state):
             state['revived'].remove(m)
     # A reported death's estate goes to the beneficiary after a year (if nobody revived).
     for m in list(state.get('estates', [])):
-        held, since = (int(x) for x in values(pool, 'estateOf(uint256)(uint256,uint256)', str(m))[:2])
+        estate, since, post = (int(x) for x in values(pool, 'estateOf(uint256)(uint256,uint256,uint256)', str(m))[:3])
+        held = estate + post
         if held == 0 and since > 0:
             state['estates'].remove(m)  # paid, or returned to a revived member
         elif held and time.time() >= since + ESTATE_HOLD and send(pk, pool, 'payEstate(uint256)', str(m)):
-            log(f"paid member {m}'s estate to the beneficiary")
+            log(f"settled member {m}'s held estate (to the beneficiary, or back to her if she was revived)")
             state['estates'].remove(m)
         elif held == 0 and since == 0 and int(values(pool, 'member(uint256)(uint256,uint256,uint256,uint256,uint256,uint256,uint256)', str(m))[6]) & RELEASED:
             state['estates'].remove(m)  # a presumed death: paid at once
-    # Recoveries apply after their 14-day delay unless the member cancelled with a check-in.
+    # Recoveries apply after the challenge window unless the member cancelled with a check-in.
     for m in list(state.get('recoveries', [])):
-        ready = int(values(registry, 'pendingRecovery(uint256)(address,bytes32,bytes32,uint64,address)', str(m))[3])
+        ready = int(values(registry, 'pendingRecovery(uint256)(address,bytes32,bytes32,uint64,address,uint64)', str(m))[3])
         if ready == 0:
             state['recoveries'].remove(m)
         elif time.time() >= ready and send(pk, registry, 'finishRecovery(uint256)', str(m)):

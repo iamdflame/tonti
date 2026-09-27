@@ -34,7 +34,7 @@ export function CheckIn({ id }: { id: bigint | null }) {
     ]);
     if (status === 'none') return setInfo('none');
     const last = Number(life.lastProof);
-    // A recovery someone asked for: it moves the account in 14 days unless she checks in.
+    // A recovery someone asked for: it moves the account after the challenge window unless she checks in.
     const readyAt = Number((pending as readonly unknown[])[3] ?? 0);
     // The yearly identity check: without it income is held, whatever the check-ins say.
     const strong = Number(life.lastStrong);
