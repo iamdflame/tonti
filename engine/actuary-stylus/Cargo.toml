@@ -1,0 +1,23 @@
+[package]
+name = "actuary-stylus"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+description = "Tonti's actuarial engine on Robinhood Chain: the same actuary-core code as the tests, simulator and backtest."
+
+[dependencies]
+actuary-core = { path = "../actuary-core" }
+alloy-primitives = "1.5.7"
+alloy-sol-types = "1.5.7"
+stylus-sdk = "0.10.9"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[features]
+default = ["mini-alloc"]
+export-abi = ["stylus-sdk/export-abi"]
+mini-alloc = ["stylus-sdk/mini-alloc"]
+
+[dev-dependencies]
+stylus-sdk = { version = "0.10.9", features = ["stylus-test"] }
