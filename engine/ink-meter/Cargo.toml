@@ -1,0 +1,16 @@
+[package]
+name = "ink-meter"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+description = "Measures Stylus ink and gas of Tonti's contracts before deployment: the deployed WASM, instrumented exactly as Stylus meters it, run with the Stylus host functions."
+publish = false
+
+[dependencies]
+alloy-primitives = "1.5.7"
+alloy-sol-types = "1.5.7"
+serde_json = "1"
+tiny-keccak = { version = "2", features = ["keccak"] }
+wasm-encoder = { version = "0.249", features = ["wasmparser"] }
+wasmi = "0.51"
+wasmparser = "0.249"
