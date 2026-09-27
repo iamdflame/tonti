@@ -1,0 +1,203 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Lifeline at dusk: tokens (web/DESIGN.md). Components use these, never raw colours. */
+
+@custom-variant dark (&:is(.dusk *, .dusk));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-atkinson);
+  --font-mono: var(--font-atkinson-mono);
+  --font-heading: var(--font-atkinson);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
+  --radius-4xl: 44px;
+
+  /* Named palette */
+  --color-night: #0d1a30;
+  --color-bay: #13233f;
+  --color-bay-2: #1c3157;
+  --color-bay-3: #26406b;
+  --color-haze: #eef2f6;
+  --color-haze-2: #e1e8f0;
+  --color-paper: #ffffff;
+  --color-ink: #14213d;
+  --color-ink-2: #4b5873;
+  --color-mist: #a9b4c6;
+  --color-slate: #7c8aa5;
+  --color-slate-soft: #c3ccda;
+  --color-lamp: #ffb23f;
+  --color-lamp-soft: #ffd48a;
+  --color-coral: #f2785c;
+  --color-ok: #1f7a4d;
+  --color-danger: #b42318;
+
+  /* Meng To's shadows, never tinted */
+  --shadow-sm: 0 2px 3px -1px rgba(0, 0, 0, 0.1), 0 1px 0 0 rgba(25, 28, 33, 0.02), 0 0 0 1px rgba(25, 28, 33, 0.08);
+  --shadow-md: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 1px -0.5px rgba(0, 0, 0, 0.06), 0 3px 3px -1.5px rgba(0, 0, 0, 0.06), 0 6px 6px -3px rgba(0, 0, 0, 0.06), 0 12px 12px -6px rgba(0, 0, 0, 0.06), 0 24px 24px -12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 2.8px 2.2px rgba(0, 0, 0, 0.034), 0 6.7px 5.3px rgba(0, 0, 0, 0.048), 0 12.5px 10px rgba(0, 0, 0, 0.06), 0 22.3px 17.9px rgba(0, 0, 0, 0.072), 0 41.8px 33.4px rgba(0, 0, 0, 0.086), 0 100px 80px rgba(0, 0, 0, 0.12);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-move: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Type scale: 5 steps, each ≥ 1.2× */
+  --text-display: clamp(2.6rem, 4.2vw + 1rem, 4.6rem);
+  --text-display--line-height: 1.03;
+  --text-display--letter-spacing: -0.02em;
+  --text-title: clamp(1.9rem, 2.6vw + 1rem, 3rem);
+  --text-title--line-height: 1.08;
+  --text-title--letter-spacing: -0.015em;
+  --text-heading: 1.5rem;
+  --text-heading--line-height: 1.2;
+  --text-body-l: 1.25rem;
+  --text-body-l--line-height: 1.5;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.55;
+  --text-caption: 0.9375rem;
+  --text-caption--line-height: 1.45;
+}
+
+/* Day: light surfaces (app screens, reading sections). */
+:root {
+  --background: #eef2f6;
+  --foreground: #14213d;
+  --card: #ffffff;
+  --card-foreground: #14213d;
+  --popover: #ffffff;
+  --popover-foreground: #14213d;
+  --primary: #ffb23f;
+  --primary-foreground: #14213d;
+  --secondary: #e1e8f0;
+  --secondary-foreground: #14213d;
+  --muted: #e1e8f0;
+  --muted-foreground: #4b5873;
+  --accent: #e1e8f0;
+  --accent-foreground: #14213d;
+  --destructive: #b42318;
+  --border: #d0d9e4;
+  --input: #b9c5d3;
+  --ring: #1c3157;
+  --radius: 12px;
+  color-scheme: light;
+}
+
+/* Dusk: dark surfaces (the sky, the night). */
+.dusk {
+  --background: #13233f;
+  --foreground: #f3f5f8;
+  --card: #1c3157;
+  --card-foreground: #f3f5f8;
+  --popover: #1c3157;
+  --popover-foreground: #f3f5f8;
+  --primary: #ffb23f;
+  --primary-foreground: #14213d;
+  --secondary: #26406b;
+  --secondary-foreground: #f3f5f8;
+  --muted: #26406b;
+  --muted-foreground: #a9b4c6;
+  --accent: #26406b;
+  --accent-foreground: #f3f5f8;
+  --destructive: #f97066;
+  --border: rgba(255, 255, 255, 0.14);
+  --input: rgba(255, 255, 255, 0.28);
+  --ring: #ffb23f;
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground text-body;
+    font-feature-settings: "ss01" 0;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  /* Focus: visible, 2px, 3:1 or better on both surfaces. Sticky headers never cover it. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+  :target,
+  [id] {
+    scroll-margin-top: 88px;
+  }
+  /* Hover effects only for mouse users. */
+  @media (hover: none) {
+    .hover-fine:hover {
+      all: unset;
+    }
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .press {
+    transition: transform 120ms var(--ease-out);
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+  .safe-bottom {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press:active {
+    transform: none;
+  }
+}
+
+/* The chart's lines draw once when the answer arrives (web/DESIGN.md: the one orchestrated moment). */
+@keyframes lamp-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.lamp-draw {
+  stroke-dasharray: 1;
+  animation: lamp-draw 900ms var(--ease-out) both;
+}

@@ -1,0 +1,4 @@
+node_modules
+.next
+scripts/shot.mjs
+scripts/weight.mjs
