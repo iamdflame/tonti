@@ -203,8 +203,10 @@ contract LifeRegistry {
     }
 
     /// @notice How often an identity-bound strong proof is needed for income. Bounded: 180–730 days.
+    /// @notice It can only be lengthened (skeptic review 4): shortening it would hold income, and
+    /// presume dead, members who renew their identity on time every year.
     function setStrongPeriod(uint64 period) external onlyOwner {
-        require(period >= 180 days && period <= 730 days, "strong");
+        require(period >= 400 days && period <= 730 days, "strong");
         strongPeriod = period;
     }
 
@@ -285,6 +287,16 @@ contract LifeRegistry {
         r.readyAt = uint64(block.timestamp) + challengeWindow;
         pendingRecovery[memberId] = r;
         emit RecoveryRequested(memberId, r.payout, r.readyAt, r.verifier);
+    }
+
+    /// @notice The member's current payout address (her family's wallet, say) may cancel a pending
+    /// recovery too, for members who rely on guardians instead of checking in themselves
+    /// (skeptic review 4).
+    function cancelRecovery(uint256 memberId) external {
+        _owned(memberId); // only the payout address
+        require(pendingRecovery[memberId].readyAt != 0, "none");
+        delete pendingRecovery[memberId];
+        emit RecoveryCancelled(memberId);
     }
 
     /// @notice Applies a recovery whose delay has passed and that the member didn't cancel.
@@ -444,7 +456,10 @@ contract LifeRegistry {
     function presumeDeceased(uint256 memberId) external {
         Life storage l = _live(memberId);
         bool silent = block.timestamp > l.lastProof + presumption;
-        bool unproven = l.identified && block.timestamp > uint256(l.lastStrong) + 2 * uint256(strongPeriod);
+        // Not while a recovery is pending: its identity statement is waiting to count (skeptic
+        // review 4: a member who lost her phone was presumed dead, dated two years back).
+        bool unproven = l.identified && block.timestamp > uint256(l.lastStrong) + 2 * uint256(strongPeriod)
+            && pendingRecovery[memberId].readyAt == 0;
         require(silent || unproven, "not lapsed long enough");
         uint64 date = silent ? l.lastProof : l.lastStrong;
         l.deceased = true;
@@ -452,6 +467,7 @@ contract LifeRegistry {
         l.dateOfDeath = date;
         deceasedAt[memberId] = uint64(block.timestamp);
         revivedAt[memberId] = 0; // a revival from an earlier death can't repay this one
+        reporterOf[memberId] = address(0); // a presumed death: nobody reported this one
         delete pendingRecovery[memberId];
         // A report still open is closed, its bond returned: the presumption stands for the death.
         Report memory r = reports[memberId];
@@ -480,6 +496,7 @@ contract LifeRegistry {
         lastOwnProof[memberId] = uint64(block.timestamp);
         l.lastStrong = issued;
         revivedAt[memberId] = uint64(block.timestamp);
+        reporterOf[memberId] = address(0);
         emit Revived(memberId, verifier);
         HeldBond memory b = heldBonds[memberId];
         if (b.amount != 0) {
