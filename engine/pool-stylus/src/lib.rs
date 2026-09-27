@@ -2429,6 +2429,8 @@ mod tests {
         assert!(heir > 4_980_000 && heir <= 5_000_000, "heir is owed ~5 USDG, got {heir}");
         assert_eq!(pool.claimable_of(HEIR), U256::ZERO, "held, not paid yet");
         assert!(matches!(pool.pay_estate(ana), Err(PoolError::TooEarly(_))));
+        vm.set_block_timestamp(since.to::<u64>() + 364 * 86_400);
+        assert!(matches!(pool.pay_estate(ana), Err(PoolError::TooEarly(_))), "a whole year");
         vm.set_block_timestamp(since.to::<u64>() + 365 * 86_400);
         pool.pay_estate(ana).unwrap();
         assert_eq!(pool.claimable_of(HEIR).to::<u128>(), heir, "paid after a year");
@@ -2804,6 +2806,8 @@ mod tests {
         }
         assert_eq!(pool.member(ana).6.to::<u64>() & FLAG_QUEUED_DEAD, 0);
         vm.mock_static_call(REGISTRY, Abi::statusCall { memberId: ana }.abi_encode(), Ok(U256::from(STATUS_PRESUMED).abi_encode()));
+        // Skeptic 4: nobody pays into the account of a member the registry says has died.
+        assert!(matches!(pool.contribute(ana, U256::from(1_000_000u64)), Err(PoolError::NotEligible(_))));
         pool.mark_dead(ana).unwrap();
         assert!(matches!(pool.mark_dead(ana), Err(PoolError::Released(_))), "queued once");
     }
@@ -3460,7 +3464,12 @@ mod tests {
     }
 
     fn revived(vm: &TestVM, m: U256, at: u64) {
-        vm.mock_static_call(REGISTRY, Abi::statusCall { memberId: m }.abi_encode(), Ok(U256::from(1u8).abi_encode()));
+        revived_as(vm, m, at, 1);
+    }
+
+    /// Revived, and now in registry status `status` (1 Active, 2 Due, 3 Lapsed).
+    fn revived_as(vm: &TestVM, m: U256, at: u64, status: u8) {
+        vm.mock_static_call(REGISTRY, Abi::statusCall { memberId: m }.abi_encode(), Ok(U256::from(status).abi_encode()));
         vm.mock_static_call(REGISTRY, Abi::dateOfDeathCall { memberId: m }.abi_encode(), Ok(U256::ZERO.abi_encode()));
         vm.mock_static_call(REGISTRY, Abi::revivedAtCall { memberId: m }.abi_encode(), Ok(U256::from(at).abi_encode()));
     }
@@ -3476,7 +3485,8 @@ mod tests {
         let (_, _, tu, bu, ..) = pool.member(a);
         reported_dead(&vm, a, now - 10 * 86_400);
         pool.mark_dead(a).unwrap();
-        revived(&vm, a, now);
+        // Revived, and by settlement time already Lapsed again: still alive, still not released.
+        revived_as(&vm, a, now, 3);
         now += (YEAR_SECONDS / 12) as u64;
         vm.set_block_timestamp(now);
         pool.settle().unwrap();
@@ -3554,6 +3564,8 @@ mod tests {
         pool.unpause().unwrap();
         vm.set_block_timestamp(month + 8 * DAY as u64);
         assert!(matches!(pool.pause(), Err(PoolError::TooEarly(_))), "not even the owner, within 30 days");
+        vm.set_block_timestamp(month + 29 * DAY as u64);
+        assert!(matches!(pool.pause(), Err(PoolError::TooEarly(_))), "29 days is still too soon");
         vm.set_block_timestamp(month + 30 * DAY as u64);
         pool.pause().unwrap();
     }
@@ -3574,5 +3586,153 @@ mod tests {
         assert!(matches!(pool.exit(ana), Err(PoolError::Paused(_))));
         vm.set_block_timestamp(at + 7 * DAY as u64);
         pool.exit(ana).unwrap();
+    }
+
+    // ---------------------------------------------------------------- regressions (skeptic 4, 2026-09-27)
+
+    const PA4: Address = Address::new([0xa1; 20]);
+    const HEIR4: Address = Address::new([0xa2; 20]);
+
+    fn next_month(vm: &TestVM, pool: &mut TontiPool, now: &mut u64) {
+        *now += (YEAR_SECONDS / 12) as u64;
+        vm.set_block_timestamp(*now);
+        pool.settle().unwrap();
+    }
+
+    fn owed_of(pool: &TontiPool, m: U256) -> u128 {
+        pool.m_owed.get(m * U256::from(4u8)).to::<u128>()
+    }
+
+    /// A false death, a revival, a partial repayment (the young pool's reserve is thin), and the
+    /// repayment invested: she holds units again and is still owed the rest.
+    fn falsely_killed_and_partly_repaid(vm: &TestVM) -> (TontiPool, U256, u64, std::rc::Rc<core::cell::RefCell<World>>) {
+        let (mut pool, a, _b, mut now, w) = six_months_of_two(vm, HEIR4);
+        reported_dead(vm, a, now - 10 * 86_400);
+        pool.mark_dead(a).unwrap();
+        next_month(vm, &mut pool, &mut now);
+        revived(vm, a, now);
+        pool.restore(a).unwrap();
+        next_month(vm, &mut pool, &mut now); // repaid in part, queued as her deposit
+        next_month(vm, &mut pool, &mut now); // invested
+        assert!(owed_of(&pool, a) > 0 && pool.member(a).2 > U256::ZERO && pool.member(a).6.to::<u64>() & FLAG_OWED != 0);
+        (pool, a, now, w)
+    }
+
+    /// Skeptic 4 (HIGH): a second false death wrote over what the first still owed.
+    #[test]
+    fn a_second_false_death_adds_to_what_the_first_still_owes() {
+        let vm = TestVM::new();
+        let (mut pool, a, mut now, _w) = falsely_killed_and_partly_repaid(&vm);
+        let left = owed_of(&pool, a);
+        reported_dead(&vm, a, now - 86_400);
+        pool.mark_dead(a).unwrap();
+        next_month(&vm, &mut pool, &mut now);
+        assert!(owed_of(&pool, a) > left, "the second release is added to what the first still owes");
+        set_fallback(None);
+    }
+
+    /// Skeptic 4: a restore and her real death settled in the same run left her unreleased, open
+    /// to deposits, holding units. She stays released, and the repayment is her estate.
+    #[test]
+    fn a_restore_that_meets_a_real_death_keeps_her_released() {
+        let vm = TestVM::new();
+        let (mut pool, a, mut now, _w) = falsely_killed_and_partly_repaid(&vm);
+        let before = pool.estate_of(a).0;
+        let refill = 2 * owed_of(&pool, a);
+        set3(&mut pool.reserve, &[refill, 0, 0]); // the reserve has refilled
+        pool.restore(a).unwrap();
+        reported_dead(&vm, a, now - 86_400); // and then her death is final
+        pool.mark_dead(a).unwrap();
+        next_month(&vm, &mut pool, &mut now);
+        let (t, _, tu, bu, pending, _, flags) = pool.member(a);
+        let flags = flags.to::<u64>();
+        assert!(flags & FLAG_RELEASED != 0 && flags & (FLAG_RESTORED | FLAG_COUNTED) == 0, "released, and not counted among the living");
+        assert_eq!((tu, bu, pending), (U256::ZERO, U256::ZERO, U256::ZERO));
+        assert_eq!(pool.c_members.get(t), U256::from(1u8));
+        assert!(pool.estate_of(a).0 > before, "the repayment is part of her estate");
+        vm.set_sender(PA4);
+        assert!(pool.contribute(a, U256::from(10 * USDG_UNIT)).is_err(), "nobody pays in for her");
+        set_fallback(None);
+    }
+
+    /// Skeptic 4: a repayment added to a deposit already queued this month was minted from this
+    /// month's deposit, which never included it (shares out of thin air). It now waits a month.
+    #[test]
+    fn a_repayment_for_a_member_already_queued_waits_for_next_month() {
+        let vm = TestVM::new();
+        let (mut pool, a, mut now, _w) = falsely_killed_and_partly_repaid(&vm);
+        vm.set_sender(PA4);
+        pool.contribute(a, U256::from(10 * USDG_UNIT)).unwrap(); // queued this month
+        vm.set_sender(MARIA);
+        let refill = 2 * owed_of(&pool, a);
+        set3(&mut pool.reserve, &[refill, 0, 0]);
+        pool.restore(a).unwrap();
+        next_month(&vm, &mut pool, &mut now);
+        let (_, _, _, _, pending, _, flags) = pool.member(a);
+        assert!(pending > U256::ZERO && flags.to::<u64>() & FLAG_QUEUED_DEPOSIT != 0, "the repayment waits, queued for next month");
+        assert_eq!(pool.pending_total.get(), pending, "and next month invests exactly it");
+        assert_eq!(pool.m_restored.get(a), U256::ZERO);
+        next_month(&vm, &mut pool, &mut now);
+        assert_eq!(pool.member(a).4, U256::ZERO, "invested");
+        set_fallback(None);
+    }
+
+    /// Skeptic 4: a member who had left the pool, still owed, was re-enrolled at risk by a later
+    /// restore. She is repaid in cash.
+    #[test]
+    fn a_member_who_left_is_repaid_what_she_is_owed_in_cash() {
+        let vm = TestVM::new();
+        let (mut pool, a, mut now, _w) = falsely_killed_and_partly_repaid(&vm);
+        let f = pool.member(a).6.to::<u64>();
+        pool.m_flags.insert(a, U256::from(f | FLAG_EXITED | FLAG_RELEASED)); // she has since left
+        let refill = 2 * owed_of(&pool, a);
+        set3(&mut pool.reserve, &[refill, 0, 0]);
+        let before = pool.claimable_of(PA4);
+        pool.restore(a).unwrap();
+        next_month(&vm, &mut pool, &mut now);
+        assert!(pool.claimable_of(PA4) > before, "paid to her own wallet");
+        let f = pool.member(a).6.to::<u64>();
+        assert!(f & FLAG_RELEASED != 0 && f & FLAG_EXITED != 0 && f & FLAG_QUEUED_DEPOSIT == 0, "not re-enrolled");
+        assert_eq!(pool.member(a).4, U256::ZERO);
+        set_fallback(None);
+    }
+
+    /// Skeptic 4 (surviving mutations): a held estate is settled only between settlements, and a
+    /// revived member's only after her restore.
+    #[test]
+    fn a_held_estate_moves_only_between_settlements_and_after_the_restore() {
+        let vm = TestVM::new();
+        let (mut pool, a, _b, mut now, _w) = six_months_of_two(&vm, HEIR4);
+        reported_dead(&vm, a, now - 10 * 86_400);
+        pool.mark_dead(a).unwrap();
+        next_month(&vm, &mut pool, &mut now);
+        assert!(pool.estate_of(a).0 > U256::ZERO);
+        now += (YEAR_SECONDS / 12) as u64 + 365 * 86_400;
+        vm.set_block_timestamp(now);
+        assert!(!pool.settle_steps(1).unwrap());
+        assert!(matches!(pool.pay_estate(a), Err(PoolError::Busy(_))), "not mid-settlement");
+        while !pool.settle_steps(100).unwrap() {}
+        revived(&vm, a, now);
+        assert!(matches!(pool.pay_estate(a), Err(PoolError::NotEligible(_))), "a revived member's estate comes back with her restore");
+        set_fallback(None);
+    }
+
+    /// Skeptic 4: a false report took the income dated after it for good. It now waits with the
+    /// estate: back to her if revived, to the survivors after the year if not.
+    #[test]
+    fn a_reported_deaths_income_after_its_date_waits_then_goes_to_the_survivors() {
+        let vm = TestVM::new();
+        let (mut pool, a, _b, mut now, _w) = six_months_of_two(&vm, HEIR4);
+        reported_dead(&vm, a, now - 60 * 86_400);
+        pool.mark_dead(a).unwrap();
+        next_month(&vm, &mut pool, &mut now);
+        let (estate, since, post) = pool.estate_of(a);
+        assert!(post > U256::ZERO && estate > U256::ZERO, "two months of her income are dated after the report's date");
+        let before = pool.unallocated_usdg.get();
+        vm.set_block_timestamp(since.to::<u64>() + 365 * 86_400);
+        pool.pay_estate(a).unwrap();
+        assert_eq!(pool.unallocated_usdg.get(), before + post, "credited to the survivors at the next settlement");
+        assert_eq!(pool.claimable_of(HEIR4), estate, "the estate to her beneficiary");
+        set_fallback(None);
     }
 }
