@@ -1,0 +1,29 @@
+[workspace]
+resolver = "2"
+members = ["actuary-core", "actuary-cli", "actuary-stylus", "pool-stylus", "ink-meter"]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+
+[profile.release]
+codegen-units = 1
+opt-level = 3
+lto = true
+panic = "abort"
+strip = true
+
+# Contracts are optimised for size: ArbOS caps a program's uncompressed WASM, and the paged pool
+# at opt-level 3 (288 KB raw) failed activation where opt-level "z" (165 KB) passes. The native
+# CLI keeps opt-level 3 for the Monte Carlo runs.
+[profile.release.package.pool-stylus]
+opt-level = "z"
+
+[profile.release.package.actuary-stylus]
+opt-level = "z"
+
+[profile.dev]
+debug = "line-tables-only"
+
+[patch.crates-io]
+stylus-test = { path = "vendor/stylus-test" }

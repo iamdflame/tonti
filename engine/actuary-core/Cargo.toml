@@ -1,0 +1,8 @@
+[package]
+name = "actuary-core"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Fixed-point actuarial engine for Tonti: mortality, payouts, fair mortality credits, SPRT, quotes. no_std, no floats."
+
+[dependencies]

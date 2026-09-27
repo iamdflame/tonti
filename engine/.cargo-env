@@ -1,0 +1,8 @@
+# Source before building. Builds go to RAM when /dev/shm exists (the build machine's internal disk is
+# nearly full), and Foundry's output with them; anywhere else they stay in the repo.
+if [ -d /dev/shm ] && [ -w /dev/shm ]; then
+  export CARGO_TARGET_DIR=/dev/shm/arbit-target/engine
+  export FOUNDRY_OUT=/dev/shm/arbit-target/forge-out
+  export FOUNDRY_CACHE_PATH=/dev/shm/arbit-target/forge-cache
+fi
+export CARGO_INCREMENTAL=0
