@@ -1,0 +1,23 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+libs = ["lib"]
+out = "out" # engine/.cargo-env redirects it to RAM on the build machine
+cache_path = "cache"
+solc_version = "0.8.30"
+optimizer = true
+optimizer_runs = 2000
+via_ir = false
+evm_version = "cancun"
+fs_permissions = [{ access = "read", path = "../config" }]
+
+[profile.default.fuzz]
+runs = 2000
+
+[profile.default.invariant]
+runs = 256
+depth = 128
+
+[rpc_endpoints]
+robinhood = "https://rpc.mainnet.chain.robinhood.com"
