@@ -1,0 +1,448 @@
+import {
+  type Abi,
+  type Account,
+  type Address,
+  type Chain,
+  type Hex,
+  type Log,
+  type PublicClient,
+  type Transport,
+  type WalletClient,
+  encodeAbiParameters,
+  encodeFunctionData,
+  erc20Abi,
+  keccak256,
+  parseEventLogs,
+  zeroAddress,
+} from 'viem';
+import { actuaryAbi, lifeRegistryAbi, tontiPoolAbi, treasuryAbi } from './abi.ts';
+import { type Quote, type QuoteInput, quote as actuaryQuote, survival as actuarySurvival } from './quote.ts';
+import type { WebAuthnAuth } from './passkey.ts';
+import { type Iso3, type Sex, WAD, cohortKey, fromUsdg, fromWad, toUsdg } from './units.ts';
+
+export type Addresses = { actuary: Address; pool: Address; treasury: Address; lifeRegistry: Address; usdg: Address; attestedIdentity?: Address };
+
+export type { Percentiles, Quote, QuoteInput } from './quote.ts';
+
+export type JoinInput = {
+  country: Iso3;
+  sex: Sex;
+  birthYear: number;
+  startAge: number;
+  /** Share kept for the beneficiary (0–1); the rest is at risk and earns mortality credits. */
+  bequestShare?: number;
+  escalating?: boolean;
+  /** Where income goes (the annuitant's wallet), and who inherits the bequest share. */
+  payout: Address;
+  beneficiary: Address;
+  /** The annuitant's passkey (see `publicKeyFromSpki`) and up to three guardians. */
+  passkey: { qx: Hex; qy: Hex };
+  guardians?: [Address, Address, Address];
+};
+
+/** One call for a batch (EIP-5792 `wallet_sendCalls`, or a smart wallet's `sendCalls`). */
+export type Call = { to: Address; data: Hex; value?: bigint };
+
+export const FLAGS = {
+  queuedDeposit: 1n,
+  queuedDead: 2n,
+  released: 4n,
+  exitRequested: 8n,
+  queuedExit: 16n,
+  exited: 32n,
+  counted: 64n,
+  presumed: 128n,
+  queuedRestore: 256n,
+  restored: 512n,
+} as const;
+export const STATUS = ['none', 'active', 'due', 'lapsed', 'deathReported', 'deceased', 'presumedDeceased'] as const;
+export type Status = (typeof STATUS)[number];
+const PHASES = ['idle', 'release', 'weigh', 'credit', 'sell', 'bequest', 'book', 'invest', 'mint', '', 'rebalance-plan', 'rebalance-trade', 'rebalance-apply'] as const;
+/** Members of a group the ghost-member detector flags have this long to renew their identity. */
+export const HOLD_GRACE_DAYS = 120;
+const Q64 = 2 ** 64;
+
+const date = (s: bigint | number) => new Date(Number(s) * 1000);
+const q64 = (v: bigint) => Number(v) / Q64;
+
+/** The member id in a `join` receipt's logs (the pool's `Joined` event). */
+export function memberIdFromLogs(logs: readonly Log[]): bigint {
+  const joined = parseEventLogs({ abi: tontiPoolAbi, eventName: 'Joined', logs: logs as Log[] });
+  if (joined.length !== 1) throw new Error(`expected one Joined event, found ${joined.length}`);
+  return joined[0].args.memberId;
+}
+
+/** What a recovery statement must be bound to: the new payout address and passkey. */
+export function recoveryAction(payout: Address, qx: Hex, qy: Hex): Hex {
+  return keccak256(encodeAbiParameters([{ type: 'string' }, { type: 'address' }, { type: 'bytes32' }, { type: 'bytes32' }], ['tonti.recover', payout, qx, qy]));
+}
+
+/** A typed client for one deployment (see config/deployment.json). Writes need `wallet`. */
+export function tonti(client: PublicClient, addresses: Addresses, wallet?: WalletClient<Transport, Chain, Account>) {
+  const pool = { address: addresses.pool, abi: tontiPoolAbi } as const;
+  const registry = { address: addresses.lifeRegistry, abi: lifeRegistryAbi } as const;
+  const need = () => {
+    if (!wallet) throw new Error('this call sends a transaction: pass a wallet client');
+    return wallet;
+  };
+  /** Simulate (so reverts come back as the contract's named errors), then send. */
+  const send = async (target: { address: Address; abi: Abi }, functionName: string, args: readonly unknown[]): Promise<Hex> => {
+    const w = need();
+    const { request } = await client.simulateContract({ ...target, functionName, args, account: w.account } as never);
+    return w.writeContract(request as never);
+  };
+  const call = (target: { address: Address; abi: Abi }, functionName: string, args: readonly unknown[]): Call => ({
+    to: target.address,
+    data: encodeFunctionData({ abi: target.abi, functionName, args } as never),
+  });
+  const joinArgs = (j: JoinInput) =>
+    [
+      cohortKey(j.country, j.sex, j.birthYear),
+      BigInt(j.startAge),
+      BigInt(Math.round((j.bequestShare ?? 0) * 10_000)),
+      j.escalating ?? false,
+      j.payout,
+      j.beneficiary,
+      j.passkey.qx,
+      j.passkey.qy,
+      j.guardians ?? [zeroAddress, zeroAddress, zeroAddress],
+    ] as const;
+
+  const api = {
+    addresses,
+
+    // ------------------------------------------------------------ quotes and assumptions
+
+    /** The on-chain quote: the Actuary's Monte Carlo, run by an eth_call (no gas paid). */
+    quote: (q: QuoteInput): Promise<Quote> => actuaryQuote(client, addresses.actuary, q),
+
+    /** The cohort's chance of being alive at each whole age from `fromAge` to 100. */
+    survival: (country: Iso3, sex: Sex, birthYear: number, fromAge: number) => actuarySurvival(client, addresses.actuary, country, sex, birthYear, fromAge),
+
+    /** Every assumption a quote uses (yearly rates, as fractions). */
+    async market() {
+      const [spyReturn, spyVol, safeRate, valuationRate, poolFee, escalation] = await client.readContract({ address: addresses.actuary, abi: actuaryAbi, functionName: 'market' });
+      return { spyReturn: q64(spyReturn), spyVol: q64(spyVol), safeRate: q64(safeRate), valuationRate: q64(valuationRate), poolFee: q64(poolFee), escalation: q64(escalation) };
+    },
+
+    // ------------------------------------------------------------ accounts
+
+    /** Every account a wallet is part of, from the chain's own logs: as payout address, guardian,
+     * beneficiary or payer. Roles are checked against the current state (logs can be stale). */
+    async accountsOf(who: Address, fromBlock = 0n) {
+      const ev = (address: Address, abi: Abi, eventName: string, args: Record<string, Address>) =>
+        client.getContractEvents({ address, abi, eventName, args, fromBlock } as never) as unknown as Promise<{ args: { memberId: bigint } }[]>;
+      const [enrolled, moved, guarded, named, paid] = await Promise.all([
+        ev(addresses.lifeRegistry, lifeRegistryAbi, 'Enrolled', { payout: who }),
+        ev(addresses.lifeRegistry, lifeRegistryAbi, 'PayoutChanged', { payout: who }),
+        ev(addresses.lifeRegistry, lifeRegistryAbi, 'GuardianSet', { guardian: who }),
+        ev(addresses.lifeRegistry, lifeRegistryAbi, 'BeneficiarySet', { beneficiary: who }),
+        ev(addresses.pool, tontiPoolAbi, 'Contributed', { payer: who }),
+      ]);
+      const ids = [...new Set([...enrolled, ...moved, ...guarded, ...named, ...paid].map((l) => l.args.memberId))].sort((a, b) => (a < b ? -1 : 1));
+      const payers = new Set(paid.map((l) => l.args.memberId));
+      const lc = who.toLowerCase();
+      const lives = await Promise.all(ids.map((id) => api.life(id)));
+      return ids
+        .map((memberId, i) => {
+          const l = lives[i];
+          const roles = [
+            ...(l.payout.toLowerCase() === lc ? ['payout' as const] : []),
+            ...(l.guardians.some((g) => g.toLowerCase() === lc) ? ['guardian' as const] : []),
+            ...(l.beneficiary.toLowerCase() === lc ? ['beneficiary' as const] : []),
+            ...(payers.has(memberId) ? ['payer' as const] : []),
+          ];
+          return { memberId, roles };
+        })
+        .filter((a) => a.roles.length > 0);
+    },
+
+    async member(memberId: bigint) {
+      const [t, b, tu, bu, pending, contributed, flags] = await client.readContract({ ...pool, functionName: 'member', args: [memberId] });
+      const [owed, value, terms, tc] = await Promise.all([api.owed(memberId), api.value(memberId), api.memberTerms(memberId), api.cohort(t)]);
+      const status = Object.fromEntries(Object.entries(FLAGS).map(([k, bit]) => [k, (flags & bit) !== 0n])) as Record<keyof typeof FLAGS, boolean>;
+      return {
+        cohorts: { atRisk: t, bequest: b },
+        units: { atRisk: tu, bequest: bu },
+        startAge: tc.startAge,
+        escalating: tc.escalating,
+        bequestShare: terms.bequestShare,
+        exitAt: terms.exitAt,
+        pendingDollars: fromUsdg(pending),
+        contributedDollars: fromUsdg(contributed),
+        owedDollars: owed,
+        valueDollars: value.dollars,
+        valuedAt: value.pricedAt,
+        valueLive: value.live,
+        ...status,
+      };
+    },
+
+    /** Bequest share (0–1) and, if notice was given, when the exit becomes possible. */
+    async memberTerms(memberId: bigint) {
+      const [beta, exitAt] = await client.readContract({ ...pool, functionName: 'memberTerms', args: [memberId] });
+      return { bequestShare: Number(beta) / 10_000, exitAt: exitAt === 0n ? null : date(exitAt) };
+    },
+
+    async cohort(id: bigint) {
+      const [key, meta, s0, s1, s2, units, incomePerUnit] = await client.readContract({ ...pool, functionName: 'cohort', args: [id] });
+      return { key, bequest: (meta & 1n) === 1n, escalating: (meta & 2n) === 2n, startAge: Number(meta >> 8n), shares: [s0, s1, s2], units, incomePerUnit };
+    },
+
+    async counts() {
+      const [members, cohorts] = await client.readContract({ ...pool, functionName: 'counts' });
+      return { members, cohorts };
+    },
+
+    /** Income owed now, dollars. */
+    /** A reported death's estate still held (dollars), and when the year-long hold began. */
+    async estate(memberId: bigint): Promise<{ usdg: number; since: Date | null }> {
+      const [usdg, since] = await client.readContract({ ...pool, functionName: 'estateOf', args: [memberId] });
+      return { usdg: fromUsdg(usdg), since: since ? new Date(Number(since) * 1000) : null };
+    },
+
+    async owed(memberId: bigint): Promise<number> {
+      return fromUsdg(await client.readContract({ ...pool, functionName: 'owed', args: [memberId] }));
+    },
+
+    /** What a member's units are worth. At live oracle prices when the feeds are fresh; otherwise
+     * (weekends, holidays) at the last prices the feeds reported, with when that was. */
+    async value(memberId: bigint): Promise<{ dollars: number; pricedAt: Date; live: boolean }> {
+      let p: readonly bigint[];
+      let pricedAt = new Date();
+      let live = true;
+      try {
+        p = await client.readContract({ address: addresses.treasury, abi: treasuryAbi, functionName: 'prices' });
+      } catch {
+        const [last, oldest] = await client.readContract({ address: addresses.treasury, abi: treasuryAbi, functionName: 'lastPrices' });
+        p = last;
+        pricedAt = date(oldest);
+        live = false;
+      }
+      const v = await client.readContract({ ...pool, functionName: 'memberValue', args: [memberId, p[0], p[1], p[2]] });
+      return { dollars: fromWad(v), pricedAt, live };
+    },
+
+    /** Shares of each sleeve the Treasury holds, and their value at the last oracle prices. */
+    async holdings() {
+      const [h, [p, oldest]] = await Promise.all([
+        client.readContract({ address: addresses.treasury, abi: treasuryAbi, functionName: 'holdings' }),
+        client.readContract({ address: addresses.treasury, abi: treasuryAbi, functionName: 'lastPrices' }),
+      ]);
+      const dollars = h.map((x, i) => Number((x * p[i]) / WAD) / 1e18);
+      return { shares: h, dollars: { cash: dollars[0], sgov: dollars[1], spy: dollars[2] }, pricedAt: date(oldest) };
+    },
+
+    /** What an estate, beneficiary or exited member can withdraw, dollars. */
+    async claimable(who: Address): Promise<number> {
+      return fromUsdg(await client.readContract({ ...pool, functionName: 'claimableOf', args: [who] }));
+    },
+
+    // ------------------------------------------------------------ life and identity
+
+    async life(memberId: bigint) {
+      return client.readContract({ ...registry, functionName: 'life', args: [memberId] });
+    },
+
+    async status(memberId: bigint): Promise<Status> {
+      return STATUS[await client.readContract({ ...registry, functionName: 'status', args: [memberId] })];
+    },
+
+    async canReceiveIncome(memberId: bigint): Promise<boolean> {
+      return client.readContract({ ...registry, functionName: 'canReceiveIncome', args: [memberId] });
+    },
+
+    /** Whether an identity adapter has confirmed the member's cohort (birth year, sex, country). */
+    async identified(memberId: bigint): Promise<boolean> {
+      return client.readContract({ ...registry, functionName: 'identified', args: [memberId] });
+    },
+
+    /** A pending death report, if any. */
+    async report(memberId: bigint) {
+      const [reporter, filedAt, dateOfDeath, evidence, bond] = await client.readContract({ ...registry, functionName: 'reports', args: [memberId] });
+      if (reporter === zeroAddress) return null;
+      const window = await client.readContract({ ...registry, functionName: 'challengeWindow' });
+      return { reporter, filedAt: date(filedAt), dateOfDeath: date(dateOfDeath), evidence, bondDollars: fromUsdg(bond), answerBy: date(filedAt + window) };
+    },
+
+    /** The challenge the member's passkey must sign for the next check-in. */
+    async challenge(memberId: bigint): Promise<Hex> {
+      return client.readContract({ ...registry, functionName: 'challenge', args: [memberId] });
+    },
+
+    /** Whether the ghost-member detector holds this member's income: their group (country × birth
+     * decade) was flagged for too few deaths more than 120 days ago, and they haven't given a strong
+     * proof since the flag. `renewBy` is when the hold starts if they don't. */
+    async held(memberId: bigint): Promise<{ held: boolean; group: bigint; flaggedAt: Date | null; renewBy: Date | null }> {
+      const group = await client.readContract({ ...pool, functionName: 'groupOfMember', args: [memberId] });
+      const [, , flaggedAt] = await client.readContract({ ...pool, functionName: 'groupState', args: [group] });
+      if (flaggedAt === 0n) return { held: false, group, flaggedAt: null, renewBy: null };
+      const last = await client.readContract({ ...registry, functionName: 'lastStrong', args: [memberId] });
+      const renewBy = flaggedAt + BigInt(HOLD_GRACE_DAYS * 86_400);
+      const renewed = BigInt(last) >= flaggedAt;
+      return { held: !renewed && BigInt(Math.floor(Date.now() / 1000)) >= renewBy, group, flaggedAt: date(flaggedAt), renewBy: renewed ? null : date(renewBy) };
+    },
+
+    // ------------------------------------------------------------ transactions
+
+    /** Opens an account; returns the member id, read from the receipt's `Joined` event. */
+    async join(j: JoinInput): Promise<{ memberId: bigint; hash: Hex }> {
+      const hash = await send(pool, 'join', joinArgs(j));
+      const receipt = await client.waitForTransactionReceipt({ hash });
+      return { memberId: memberIdFromLogs(receipt.logs), hash };
+    },
+
+    /** Pays dollars in for a member; anyone may pay. Approves the pool for USDG first if needed.
+     * Only after the member's identity check (`identified`): no money goes in that couldn't come out. */
+    async contribute(memberId: bigint, dollars: number): Promise<Hex> {
+      const w = need();
+      if (!(await api.identified(memberId))) {
+        throw new Error(`member ${memberId} hasn't passed the identity check yet: contributions open once it has`);
+      }
+      const amount = toUsdg(dollars);
+      const allowance = await client.readContract({ address: addresses.usdg, abi: erc20Abi, functionName: 'allowance', args: [w.account.address, addresses.pool] });
+      if (allowance < amount) {
+        const hash = await w.writeContract({ address: addresses.usdg, abi: erc20Abi, functionName: 'approve', args: [addresses.pool, amount], chain: w.chain, account: w.account });
+        await client.waitForTransactionReceipt({ hash });
+      }
+      return send(pool, 'contribute', [memberId, amount]);
+    },
+
+    /** Pays owed income to the member's payout address (anyone may trigger it). */
+    claim: (memberId: bigint) => send(pool, 'claim', [memberId]),
+    /** Withdraws what the pool owes the caller (an estate, beneficiary, exited or revived member). */
+    withdraw: () => send(pool, 'withdraw', []),
+    /** Notice to leave (from the member's payout address); `memberTerms` gives when it can be executed. */
+    requestExit: (memberId: bigint) => send(pool, 'requestExit', [memberId]),
+    cancelExit: (memberId: bigint) => send(pool, 'cancelExit', [memberId]),
+    exit: (memberId: bigint) => send(pool, 'exit', [memberId]),
+    /** Queues a member whose death the registry made final (anyone may). */
+    markDead: (memberId: bigint) => send(pool, 'markDead', [memberId]),
+    /** Queues the repayment of a member whose death was undone (`revive`), from the revival reserve. */
+    restore: (memberId: bigint) => send(pool, 'restore', [memberId]),
+    /** A reported death's held estate: to the beneficiary after a year, or back to a revived member. */
+    payEstate: (memberId: bigint) => send(pool, 'payEstate', [memberId]),
+    /** Abandons a rebalance stuck for a day (anyone may). */
+    abortRebalance: () => send(pool, 'abortRebalance', []),
+
+    /** Proof of life: submit a passkey assertion converted by `toWebAuthnAuth`. */
+    checkIn: (memberId: bigint, auth: WebAuthnAuth) => send(registry, 'checkIn', [memberId, auth]),
+    /** Identity-bound strong proof (from `attestIdentity` or another adapter). The first one
+     * identifies the member; one is needed at least every `strongPeriod` for income and exits. */
+    strongProof: (memberId: bigint, verifier: Address, proof: Hex) => send(registry, 'strongProof', [memberId, verifier, proof]),
+    /** A guardian says the member is alive; two guardians within 30 days count as a check-in. */
+    attest: (memberId: bigint) => send(registry, 'attest', [memberId]),
+    /** A member whose death became final (reported or presumed) proves who they are, within 5 years. */
+    revive: (memberId: bigint, verifier: Address, proof: Hex) => send(registry, 'revive', [memberId, verifier, proof]),
+    /** A lost phone or wallet: an identity statement bound to the new payout address and passkey. */
+    recover: (memberId: bigint, payout: Address, qx: Hex, qy: Hex, verifier: Address, proof: Hex) => send(registry, 'recover', [memberId, payout, qx, qy, verifier, proof]),
+    /** Applies a recovery once the challenge window has passed (anyone may). */
+    finishRecovery: (memberId: bigint) => send(registry, 'finishRecovery', [memberId]),
+    setPayout: (memberId: bigint, payout: Address) => send(registry, 'setPayout', [memberId, payout]),
+    setBeneficiary: (memberId: bigint, beneficiary: Address) => send(registry, 'setBeneficiary', [memberId, beneficiary]),
+    setGuardians: (memberId: bigint, guardians: [Address, Address, Address]) => send(registry, 'setGuardians', [memberId, guardians]),
+    resolveReport: (memberId: bigint) => send(registry, 'resolveReport', [memberId]),
+    releaseBond: (memberId: bigint) => send(registry, 'releaseBond', [memberId]),
+    presumeDeceased: (memberId: bigint) => send(registry, 'presumeDeceased', [memberId]),
+
+    /** Reports a death, with the registry's USDG bond (10 USDG, approved first if needed). The
+     * member defeats it by any proof of life within the challenge window (120 days). */
+    async reportDeath(memberId: bigint, dateOfDeath: Date, evidence: Hex): Promise<Hex> {
+      const w = need();
+      const bond = await client.readContract({ ...registry, functionName: 'reportBond' });
+      const allowance = await client.readContract({ address: addresses.usdg, abi: erc20Abi, functionName: 'allowance', args: [w.account.address, addresses.lifeRegistry] });
+      if (allowance < bond) {
+        const hash = await w.writeContract({ address: addresses.usdg, abi: erc20Abi, functionName: 'approve', args: [addresses.lifeRegistry, bond], chain: w.chain, account: w.account });
+        await client.waitForTransactionReceipt({ hash });
+      }
+      return send(registry, 'reportDeath', [memberId, BigInt(Math.floor(dateOfDeath.getTime() / 1000)), evidence]);
+    },
+
+    /** The pool's settlement state, for keepers and status pages. */
+    async state() {
+      const [[epoch, lastSettle, epochLength], run, paused] = await Promise.all([
+        client.readContract({ ...pool, functionName: 'epochInfo' }),
+        client.readContract({ ...pool, functionName: 'runState' }),
+        client.readContract({ ...pool, functionName: 'isPaused' }),
+      ]);
+      return {
+        epoch,
+        lastSettle: date(lastSettle),
+        nextSettle: date(lastSettle + epochLength),
+        phase: PHASES[Number(run[0])] ?? 'unknown',
+        cursor: run[1],
+        cohortsInRun: run[2],
+        paused,
+      };
+    },
+
+    /** Pushes settlement pages until the epoch is settled (anyone may). */
+    async settle(budget = 100): Promise<Hex[]> {
+      const w = need();
+      const hashes: Hex[] = [];
+      for (;;) {
+        const { result, request } = await client.simulateContract({ ...pool, functionName: 'settleSteps', args: [budget], account: w.account });
+        const hash = await w.writeContract(request);
+        await client.waitForTransactionReceipt({ hash });
+        hashes.push(hash);
+        if (result) return hashes;
+      }
+    },
+
+    /** The same actions as calls, for one-tap batches through a smart wallet (`sendCalls`). */
+    calls: {
+      join: (j: JoinInput): Call => call(pool, 'join', joinArgs(j)),
+      /** Approve and contribute together. */
+      contribute: (memberId: bigint, dollars: number): Call[] => {
+        const amount = toUsdg(dollars);
+        return [
+          { to: addresses.usdg, data: encodeFunctionData({ abi: erc20Abi, functionName: 'approve', args: [addresses.pool, amount] }) },
+          call(pool, 'contribute', [memberId, amount]),
+        ];
+      },
+      claim: (memberId: bigint): Call => call(pool, 'claim', [memberId]),
+      withdraw: (): Call => call(pool, 'withdraw', []),
+      requestExit: (memberId: bigint): Call => call(pool, 'requestExit', [memberId]),
+      cancelExit: (memberId: bigint): Call => call(pool, 'cancelExit', [memberId]),
+      checkIn: (memberId: bigint, auth: WebAuthnAuth): Call => call(registry, 'checkIn', [memberId, auth]),
+      attest: (memberId: bigint): Call => call(registry, 'attest', [memberId]),
+      strongProof: (memberId: bigint, verifier: Address, proof: Hex): Call => call(registry, 'strongProof', [memberId, verifier, proof]),
+      setPayout: (memberId: bigint, payout: Address): Call => call(registry, 'setPayout', [memberId, payout]),
+      setBeneficiary: (memberId: bigint, beneficiary: Address): Call => call(registry, 'setBeneficiary', [memberId, beneficiary]),
+      setGuardians: (memberId: bigint, guardians: [Address, Address, Address]): Call => call(registry, 'setGuardians', [memberId, guardians]),
+    },
+  };
+  return api;
+}
+
+/**
+ * The attester's side of `AttestedIdentity`: after checking the member's document, sign that
+ * `memberId` holds the identity of cohort `key` (see `cohortKey`), authorising `action`: plain
+ * identification (the default), or a recovery (`recoveryAction(newPayout, qx, qy)`). Returns the
+ * `proof` for `strongProof`, `revive` or `recover`. Dated now, valid at most 30 days; bound to this
+ * verifier, registry and chain; the registry accepts each statement once.
+ */
+export async function attestIdentity(
+  attester: WalletClient<Transport, Chain, Account>,
+  a: { verifier: Address; registry: Address; memberId: bigint; key: bigint; action?: Hex; validForDays?: number; issuedAt?: number },
+): Promise<Hex> {
+  const issuedAt = BigInt(a.issuedAt ?? Math.floor(Date.now() / 1000) - 60); // a minute's slack for block time
+  const expiry = issuedAt + BigInt(Math.round((a.validForDays ?? 7) * 86_400));
+  const action = a.action ?? (`0x${'00'.repeat(32)}` as Hex);
+  const signature = await attester.signTypedData({
+    domain: { name: 'Tonti Identity', version: '2', chainId: attester.chain.id, verifyingContract: a.verifier },
+    types: {
+      Identity: [
+        { name: 'memberId', type: 'uint256' },
+        { name: 'key', type: 'uint256' },
+        { name: 'registry', type: 'address' },
+        { name: 'action', type: 'bytes32' },
+        { name: 'issuedAt', type: 'uint64' },
+        { name: 'expiry', type: 'uint64' },
+      ],
+    },
+    primaryType: 'Identity',
+    message: { memberId: a.memberId, key: a.key, registry: a.registry, action, issuedAt, expiry },
+  });
+  return encodeAbiParameters([{ type: 'uint64' }, { type: 'uint64' }, { type: 'bytes' }], [issuedAt, expiry, signature]);
+}

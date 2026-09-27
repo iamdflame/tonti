@@ -1,0 +1,19 @@
+{
+  "name": "@tonti/sdk",
+  "version": "0.1.0",
+  "description": "Typed client for Tonti on Robinhood Chain: on-chain quotes, joining, contributions, income, exits and passkey check-ins.",
+  "type": "module",
+  "license": "MIT",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

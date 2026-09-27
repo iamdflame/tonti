@@ -1,0 +1,495 @@
+[
+ {
+  "type": "function",
+  "name": "escalation",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "int256",
+    "internalType": "int256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "init",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "isSealed",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "market",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "",
+    "type": "int256",
+    "internalType": "int256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "owner",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "payoutFraction",
+  "inputs": [
+   {
+    "name": "key",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "age",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "year",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "escalating",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "qMonth",
+  "inputs": [
+   {
+    "name": "key",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "age",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "year",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "quote",
+  "inputs": [
+   {
+    "name": "key",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "age",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "year",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "start_age",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "lump_sum",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "monthly_contribution",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "paths",
+    "type": "uint32",
+    "internalType": "uint32"
+   },
+   {
+    "name": "escalating",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "seal",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "setEscalation",
+  "inputs": [
+   {
+    "name": "escalation",
+    "type": "int256",
+    "internalType": "int256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "setMarket",
+  "inputs": [
+   {
+    "name": "spy_return",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "spy_vol",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "safe_rate",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "valuation_rate",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "pool_fee",
+    "type": "int256",
+    "internalType": "int256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "setMortality",
+  "inputs": [
+   {
+    "name": "key",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "a",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "b",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "theta",
+    "type": "int256",
+    "internalType": "int256"
+   },
+   {
+    "name": "kappa",
+    "type": "int256",
+    "internalType": "int256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "setMortalityBatch",
+  "inputs": [
+   {
+    "name": "keys",
+    "type": "uint256[]",
+    "internalType": "uint256[]"
+   },
+   {
+    "name": "a",
+    "type": "int256[]",
+    "internalType": "int256[]"
+   },
+   {
+    "name": "b",
+    "type": "int256[]",
+    "internalType": "int256[]"
+   },
+   {
+    "name": "theta",
+    "type": "int256[]",
+    "internalType": "int256[]"
+   },
+   {
+    "name": "kappa",
+    "type": "int256[]",
+    "internalType": "int256[]"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "transferOwnership",
+  "inputs": [
+   {
+    "name": "to",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "event",
+  "name": "EscalationSet",
+  "inputs": [
+   {
+    "name": "escalation",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "MarketSet",
+  "inputs": [
+   {
+    "name": "spyReturn",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   },
+   {
+    "name": "spyVol",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   },
+   {
+    "name": "safeRate",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   },
+   {
+    "name": "valuationRate",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   },
+   {
+    "name": "poolFee",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "MortalitySet",
+  "inputs": [
+   {
+    "name": "key",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "a",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   },
+   {
+    "name": "b",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   },
+   {
+    "name": "theta",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   },
+   {
+    "name": "kappa",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Sealed",
+  "inputs": [],
+  "anonymous": false
+ },
+ {
+  "type": "error",
+  "name": "BadInput",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "Math",
+  "inputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "uint8"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "Unauthorized",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "UnknownMortality",
+  "inputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ }
+]
