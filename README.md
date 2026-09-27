@@ -32,15 +32,15 @@ The pool can't go insolvent either, because it only redistributes money from dea
 - **Leaving before income starts.**
   - You give 12 months' notice and stay at risk during it.
   - Then you take 99% of your at-risk money and all your bequest share. The 1% stays with the members who remain.
-  - A notice must be used within 90 days of maturing, and never after income has started.
+  - A notice must be used within 150 days of maturing, and never after income has started.
 - **Nobody can lie about their age.** Money goes in only after an identity check confirms your birth year, sex and country. Money comes out only with a fresh identity check at least every 400 days. Each identity statement is dated and counts once.
 - **Proof of life, without paying the dead or killing the living:**
   - A passkey (Face ID or fingerprint, WebAuthn P-256) check-in every 90 days, verified on-chain by Robinhood Chain's RIP-7212 precompile. Alternatively, 2 of 3 guardians can vouch that you're alive, though never for who you are, and never to answer a death report.
   - Anyone can report a death with a bond. The member has **120 days** to answer with their own passkey or an identity proof, so a member who keeps their normal 90-day check-ins answers a false report without ever knowing of it. The date of death can't be set before the member's own last proof of life.
-  - Any death, reported or presumed, can be **undone within five years** by an identity proof. The member's released money is repaid from a revival reserve **back into their account**, never paid out, so staging a death is no way to leave after income has started. The reserve repays as far as it goes; what it can't cover stays owed and is repaid as it refills, which in a young pool can take years. A later death clears any earlier revival. There is no reward for reporting a death, and a reported death's estate and bequest are **held for a year**: if the member is revived in that time they go back to the member, so a false report can't pay the family either.
+  - Any death, reported or presumed, can be **undone within five years** by an identity proof. The member's released money is repaid from a revival reserve **back into their account**, never paid out, so staging a death is no way to leave after income has started. The reserve repays as far as it goes; what it can't cover stays owed and is repaid as it refills, which in a young pool can take years. A later death clears any earlier revival. There is no reward for reporting a death, and a reported death's estate, bequest and the income dated after the death are **held for a year**: if the member is revived in that time they go back into her account with her restore, so a false report can't pay the family, or the survivors, either.
   - Heirs who keep a dead member's passkey "alive" don't stop the clock: after 800 days without an identity proof, the member is presumed dead.
   - A statistical detector watches every country × birth-decade group for deaths that go unreported. Members of a flagged group get 120 days to renew their identity.
-- **Accounts can change.** The payout address can move the income, the beneficiary and the guardians. A lost phone or wallet is recovered with an identity statement bound to the new wallet and passkey. It takes effect only after the challenge window (**120 days**, never less than a check-in period plus grace), income waits meanwhile, and one check-in with the old passkey cancels it. A member on her usual schedule always checks in first, so an identity statement alone can't take over a living member's account.
+- **Accounts can change.** The payout address can move the income, the beneficiary and the guardians. A lost phone or wallet is recovered with an identity statement bound to the new wallet and passkey. It takes effect only after the challenge window (**120 days**, never less than a check-in period plus grace), income waits meanwhile, and one check-in with the old passkey, or the payout wallet, cancels it. A member on her usual schedule always checks in first, so an identity statement alone can't take over a living member's account.
 
 Full specification: [`docs/protocol.md`](docs/protocol.md).
 
@@ -53,7 +53,7 @@ Full specification: [`docs/protocol.md`](docs/protocol.md).
 | Mortality matches the UN tables where it pays | Fitted to the annuity factor from every age income can start (50–80) and, at half weight, from 85, 90 and 95, because income keeps being paid at `1/ä` from the age reached. Against the UN tables it was fitted to: worst error **1.35%** from start ages (95th percentile 0.60%, median 0.16%, 7,680 cohort × age pairs); from 85, **1.30%**; from 90, **1.70%**; from 95, **3.74%**. Fitted from 50–80 only, it reached 2.2%, 4.7% and 7.3% from those ages (skeptic review 2) | `actuarial/validate_fit.py` |
 | Credits are fair, even in small pools | On the same members and deaths, the correction cuts RMS bias from 4.8% to **0.26%** at 100 members, from 0.64% to 0.18% at 1,000, and from 0.051% to 0.012% at 10,000. At 20 members it is still 4.9% (from 31%) | `actuary-cli fairness` |
 | Accounting can't leak | Exact share conservation over 10k random settlements and 10k random rebalances. A top-up never creates income, checked over 20,000 random holdings | `actuary-core`, `pool-stylus` tests |
-| The tests can fail | The pool's test VM reverts on any call a test didn't set up, so paying the wrong address or enrolling the wrong key fails. Planted bugs, including every flaw the three independent reviews found: **26 in the pool** and **15 in the LifeRegistry**, each caught by the tests | `engine/tests/mutate_pool.py`, `engine/tests/mutate_registry.py` |
+| The tests can fail | The pool's test VM reverts on any call a test didn't set up, so paying the wrong address or enrolling the wrong key fails. Planted bugs, including every flaw the four independent reviews found: **37 in the pool** and **23 in the LifeRegistry**, each caught by the tests | `engine/tests/mutate_pool.py`, `engine/tests/mutate_registry.py` |
 | Hidden deaths get caught, honest groups don't | Honest deaths take 4–6 months to become final, so each month is compared with the deaths expected 5 months earlier (testing each month against itself flagged **100%** of honest groups by month 3). A group of 3,300, 10 seeds × 300 runs: honest groups at the UN rates **0%** flagged within 3 years, 15% healthier 0.4%, 20% healthier 1.6%, 30% healthier 16%; 50% of deaths hidden, flagged 83% within 2 years and 99% within 3; 30% hidden, 17% within 3 (left to the yearly identity check). If honest deaths take 4–12 months to become final, 2.3% of honest groups are flagged | `engine/tests/ghost_power.py` |
 | The dead are never paid, the living never killed | Real P-256 passkey signatures. Income is held while lapsed. A false report is answered by an on-schedule check-in, and the bond goes to the member. A final report can be undone within five years. Replayed or foreign identity statements are refused | `contracts/test/LifeRegistry.t.sol` |
 | Trades are real and bounded | On live Robinhood Chain mainnet state, $1,000 → SPY → back costs 12.5 bps, and SGOV 9.5 bps. Stale prices and worse-than-oracle fills are refused. Members still see their value when feeds are stale (`lastPrices`) | `contracts/test/Treasury.fork.t.sol` |
@@ -62,8 +62,8 @@ Full specification: [`docs/protocol.md`](docs/protocol.md).
 | It fits on Robinhood Chain | Mainnet activation dry-runs pass: Actuary v2 34.8 KB, pool 53.3 KB | `cargo stylus check` |
 
 **Tests:**
-- Rust: 26 core, 10 Actuary, 26 pool.
-- Solidity: 39, of which 9 run against live mainnet state.
+- Rust: 26 core, 10 Actuary, 32 pool.
+- Solidity: 45, of which 10 run against live mainnet state.
 - TypeScript: 6, against the real contracts on anvil.
 
 Raw reports go to `runs/` (or `$TONTI_RUNS`).
@@ -79,6 +79,8 @@ A 48-hour timelock owns every contract. The deployer proposes changes, and anyon
 - epoch length (28 to 31 days, so the detector's 5-month reporting lag always fits its 7-epoch ring), the member cap (up to 100,000 USDG) and the exit notice (180 to 730 days);
 - check-in periods (the challenge window never shorter than a check-in period plus grace);
 - trading routes, which must be the same token pair with no hooks;
+- the Treasury's price freshness (26 to 96 hours) and slippage bound (0.3% to 2%), which can't be set tight enough to stop settlement;
+- the identity period (400 to 730 days), which can only be lengthened, so members who renew yearly are never held or presumed dead by a change;
 - identity verifiers: a new one works only 30 days after it is allowed, while removal is immediate.
 
 **What governance cannot touch:**
@@ -114,8 +116,8 @@ git submodule update --init                 # forge-std and OpenZeppelin v5.4.0
 source engine/.cargo-env                     # builds go to RAM where /dev/shm exists
 (cd engine && cargo test --release -p actuary-core -p actuary-stylus -p pool-stylus)
 (cd engine && cargo build --release -p actuary-cli && python3 tests/reference_quote.py 40)
-python3 engine/tests/mutate_pool.py          # 26 planted pool bugs, each must be caught
-python3 engine/tests/mutate_registry.py      # 15 planted LifeRegistry bugs
+python3 engine/tests/mutate_pool.py          # 37 planted pool bugs, each must be caught
+python3 engine/tests/mutate_registry.py      # 23 planted LifeRegistry bugs
 python3 engine/tests/ghost_power.py          # the detector's false alarms and power
 python3 actuarial/validate_fit.py            # annuity-factor errors from income start ages
 (cd contracts && forge test)                 # fork tests hit live Robinhood Chain state
@@ -135,7 +137,7 @@ python3 services/keeper.py <key-file>        # settlement pages, rebalance, deat
 - **Settlement can stall on a paused token.** A rebalance can be abandoned, but income sales need their sleeve to trade.
 - **Revival is capped by the reserve** (5% of every death's release, released at 1/60 a month). It covers members in full only while wrongful deaths stay rarer than about 1 in 20.
 - **The ghost detector judges death rates against the UN tables.** It tests 85% of the tables' deaths against 55%. Measured over 3 years, it flags 1.6% of honest groups 20% healthier than the tables and 16% of those 30% healthier, more if deaths take long to become final, and the published rates cover 3 years of a lifelong pool. Concealment of less than about 40% of a group's deaths is left to the yearly identity renewal. A flag costs members an identity renewal, never money.
-- **Recovery trusts the operator's identity check,** bounded by the 120-day delay the member can cancel. It can't win against someone holding the member's unlocked phone: they can cancel every recovery. They can't renew the member's identity, so income stops within 400 days, but the account can't be taken back from them on-chain.
+- **Recovery trusts the operator's identity check,** bounded by the 120-day delay that the member's check-in or her payout wallet can cancel. It can't win against someone holding both the member's unlocked phone and her wallet: they can cancel every recovery, and after moving the payout and beneficiary to themselves they are paid whenever she renews her identity or is revived, and inherit her estate if she is presumed dead. Closing that needs an off-chain step (a second, uncancellable identity check with a longer delay) that isn't built.
 - **Guardians keep a member from lapsing, but can't answer a death report.** A member who relies on guardians instead of checking in herself can be reported dead and not answer; the date of death is then her guardians' last confirmation.
 - **Mortality past 90.** Gompertz misfits the plateau (Singapore women: survival error 0.054).
 - **Regulation.** A longevity pool may count as insurance or a collective investment scheme. The path is the MAS FinTech Regulatory Sandbox, or a licensed trustee.
