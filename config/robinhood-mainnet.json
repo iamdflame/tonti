@@ -1,0 +1,91 @@
+{
+  "chainId": 4663,
+  "rpc": "https://rpc.mainnet.chain.robinhood.com",
+  "verifiedAt": {
+    "date": "2026-09-26",
+    "block": 73334887,
+    "how": "each address read on-chain with cast: name/symbol/decimals, token ties (vault asset, feed description), shared Robinhood beacon for stock tokens"
+  },
+  "tokens": {
+    "USDG": {
+      "address": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+      "decimals": 6,
+      "name": "Global Dollar",
+      "source": "docs.robinhood.com/chain/contracts"
+    },
+    "SPY": {
+      "address": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C",
+      "decimals": 18,
+      "name": "SPDR S&P 500 ETF Trust \u2022 Robinhood Token",
+      "uiMultiplierAtVerify": "1001717991187472003"
+    },
+    "SGOV": {
+      "address": "0x92FD66527192E3e61d4DDd13322Aa222DE86F9B5",
+      "decimals": 18,
+      "name": "iShares 0-3 Month Treasury Bond \u2022 Robinhood Token",
+      "uiMultiplierAtVerify": "1005101770003214918"
+    }
+  },
+  "stockTokenBeacon": "0xe10b6f6b275de231345c20d14ab812db62151b00",
+  "stockTokenImplementation": "0xb35490d6f9163DE4F80d88dc75c3516eb64C5aE2",
+  "chainlink": {
+    "SPY_USD": {
+      "address": "0x319724394D3A0e3669269846abE664Cd621f9f6A",
+      "decimals": 8,
+      "description": "RHSPY / USD"
+    },
+    "SGOV_USD": {
+      "address": "0xa0DF4ee0fFf975306345875E3548Fcc519577A11",
+      "decimals": 8,
+      "description": "Robinhood SGOV-USD"
+    },
+    "note": "prices include the ERC-8056 uiMultiplier; feeds went 20-28h without an update over the weekend of 2026-09-26"
+  },
+  "morpho": {
+    "steakhouseUSDG": {
+      "address": "0xBeEff033F34C046626B8D0A041844C5d1A5409dd",
+      "shareDecimals": 18,
+      "asset": "USDG",
+      "totalAssetsAtVerify": "511684986429160",
+      "curator": "0x9023FBD6A08C666491A2d1648737E400cF42D2Fb"
+    }
+  },
+  "uniswapV4": {
+    "poolManager": "0x8366a39CC670B4001A1121B8F6A443A643e40951",
+    "quoter": "0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94",
+    "stateView": "0xF3334192D15450CdD385c8B70e03f9A6bD9E673b",
+    "universalRouter": "0x06AfBA43Fd06227fA663b0DAecF536f6EaA6bf99",
+    "universalRouterNote": "Robinhood fork: v4 swap struct carries an extra minHopPriceX36 field; stock SDK calldata reverts",
+    "pools": {
+      "SPY_USDG": {
+        "id": "0xe5923c8a8be481ec89a2ca784a2bbfa4235de6d88f92260fd66b660c4babf907",
+        "currency0": "SPY",
+        "currency1": "USDG",
+        "fee": 500,
+        "tickSpacing": 5,
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "measuredCostBps": {
+          "100": -3.1,
+          "1000": -3.0,
+          "10000": -2.2
+        }
+      },
+      "USDG_SGOV": {
+        "id": "0x2a72510d7d92cc121f9733ab6d14227ef8963cfadf9d40ac574f02e20e6299a8",
+        "currency0": "USDG",
+        "currency1": "SGOV",
+        "fee": 375,
+        "tickSpacing": 4,
+        "hooks": "0x0000000000000000000000000000000000000000",
+        "measuredCostBps": {
+          "100": 0.5,
+          "1000": 0.8,
+          "10000": 3.8
+        }
+      }
+    },
+    "excluded": {
+      "QQQ": "too thin: $1k quotes revert on every pool (2026-09-26)"
+    }
+  }
+}
