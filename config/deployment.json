@@ -1,0 +1,52 @@
+{
+ "chainId": 4663,
+ "deployer": "0xf910fC2fD395128A894e9754bE56479F05b54121",
+ "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+ "actuary": "0x4cd86134f0ec64263df710f0414d21a18d116525",
+ "market": {
+  "spy_return": 0.06,
+  "spy_vol": 0.16,
+  "safe_rate": 0.035,
+  "valuation_rate": 0.035
+ },
+ "countries": [
+  "PHL",
+  "IDN",
+  "IND",
+  "BGD",
+  "MMR",
+  "LKA",
+  "NPL",
+  "VNM",
+  "THA",
+  "MYS",
+  "CHN",
+  "SGP"
+ ],
+ "batches": [
+  "PHL-female",
+  "PHL-male",
+  "IDN-female",
+  "IDN-male",
+  "IND-female",
+  "IND-male",
+  "BGD-female",
+  "BGD-male",
+  "MMR-female",
+  "MMR-male",
+  "LKA-female",
+  "LKA-male",
+  "NPL-female",
+  "NPL-male",
+  "VNM-female",
+  "VNM-male",
+  "THA-female",
+  "THA-male",
+  "MYS-female",
+  "MYS-male",
+  "CHN-female",
+  "CHN-male",
+  "SGP-female",
+  "SGP-male"
+ ]
+}
