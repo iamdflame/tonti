@@ -1,0 +1,906 @@
+{
+ "pool": "PHL women born 1956-1966, 300 per birth year (3,300 members)",
+ "horizon_months": 36,
+ "runs_per_seed": 300,
+ "seeds": 10,
+ "honest_report_lag_months": "4-6",
+ "contract": {
+  "alpha": 0.001,
+  "lag_months": 5,
+  "h0": 0.85,
+  "h1": 0.55
+ },
+ "power": [
+  {
+   "hidden": 0.0,
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.0,
+   "flagged_36m": 0.0,
+   "flagged_24m_by_seed": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "median_months": null
+  },
+  {
+   "hidden": 0.1,
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.0,
+   "flagged_36m": 0.00033,
+   "flagged_24m_by_seed": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "median_months": null
+  },
+  {
+   "hidden": 0.2,
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.004,
+   "flagged_36m": 0.01168,
+   "flagged_24m_by_seed": [
+    0.0067,
+    0.0033,
+    0.0067,
+    0.0033,
+    0.0033,
+    0.0067,
+    0.0067,
+    0.0033,
+    0.0,
+    0.0
+   ],
+   "median_months": null
+  },
+  {
+   "hidden": 0.3,
+   "flagged_12m": 0.00033,
+   "flagged_24m": 0.062,
+   "flagged_36m": 0.17065999999999998,
+   "flagged_24m_by_seed": [
+    0.06,
+    0.0533,
+    0.0667,
+    0.0533,
+    0.07,
+    0.0667,
+    0.06,
+    0.0633,
+    0.0567,
+    0.07
+   ],
+   "median_months": null
+  },
+  {
+   "hidden": 0.4,
+   "flagged_12m": 0.00299,
+   "flagged_24m": 0.36768,
+   "flagged_36m": 0.73534,
+   "flagged_24m_by_seed": [
+    0.37,
+    0.2867,
+    0.3967,
+    0.3567,
+    0.3967,
+    0.39,
+    0.3433,
+    0.3667,
+    0.3633,
+    0.4067
+   ],
+   "median_months": 28
+  },
+  {
+   "hidden": 0.5,
+   "flagged_12m": 0.03565,
+   "flagged_24m": 0.83299,
+   "flagged_36m": 0.993,
+   "flagged_24m_by_seed": [
+    0.8333,
+    0.8233,
+    0.8433,
+    0.84,
+    0.83,
+    0.84,
+    0.79,
+    0.86,
+    0.8267,
+    0.8433
+   ],
+   "median_months": 19
+  }
+ ],
+ "robustness": [
+  {
+   "health": 1.0,
+   "final_after_months": [
+    4,
+    6
+   ],
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.0,
+   "flagged_36m": 0.0,
+   "flagged_24m_by_seed": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "median_months": null
+  },
+  {
+   "health": 1.0,
+   "final_after_months": [
+    5,
+    8
+   ],
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.0,
+   "flagged_36m": 0.0,
+   "flagged_24m_by_seed": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "median_months": null
+  },
+  {
+   "health": 1.0,
+   "final_after_months": [
+    6,
+    9
+   ],
+   "flagged_12m": 0.00066,
+   "flagged_24m": 0.00402,
+   "flagged_36m": 0.00402,
+   "flagged_24m_by_seed": [
+    0.0,
+    0.0067,
+    0.0067,
+    0.0,
+    0.0067
+   ],
+   "median_months": null
+  },
+  {
+   "health": 1.0,
+   "final_after_months": [
+    4,
+    12
+   ],
+   "flagged_12m": 0.01,
+   "flagged_24m": 0.02334,
+   "flagged_36m": 0.02334,
+   "flagged_24m_by_seed": [
+    0.02,
+    0.03,
+    0.02,
+    0.0267,
+    0.02
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.9,
+   "final_after_months": [
+    4,
+    6
+   ],
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.0,
+   "flagged_36m": 0.0,
+   "flagged_24m_by_seed": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.9,
+   "final_after_months": [
+    5,
+    8
+   ],
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.00198,
+   "flagged_36m": 0.00198,
+   "flagged_24m_by_seed": [
+    0.0,
+    0.0,
+    0.0033,
+    0.0033,
+    0.0033
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.9,
+   "final_after_months": [
+    6,
+    9
+   ],
+   "flagged_12m": 0.00536,
+   "flagged_24m": 0.025320000000000002,
+   "flagged_36m": 0.02732,
+   "flagged_24m_by_seed": [
+    0.02,
+    0.0233,
+    0.0333,
+    0.0167,
+    0.0333
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.9,
+   "final_after_months": [
+    4,
+    12
+   ],
+   "flagged_12m": 0.02666,
+   "flagged_24m": 0.06666,
+   "flagged_36m": 0.06932,
+   "flagged_24m_by_seed": [
+    0.06,
+    0.0833,
+    0.07,
+    0.0467,
+    0.0733
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.85,
+   "final_after_months": [
+    4,
+    6
+   ],
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.00132,
+   "flagged_36m": 0.004,
+   "flagged_24m_by_seed": [
+    0.0033,
+    0.0,
+    0.0,
+    0.0033,
+    0.0
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.85,
+   "final_after_months": [
+    5,
+    8
+   ],
+   "flagged_12m": 0.00066,
+   "flagged_24m": 0.00934,
+   "flagged_36m": 0.01198,
+   "flagged_24m_by_seed": [
+    0.0067,
+    0.01,
+    0.01,
+    0.0133,
+    0.0067
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.85,
+   "final_after_months": [
+    6,
+    9
+   ],
+   "flagged_12m": 0.00802,
+   "flagged_24m": 0.04266,
+   "flagged_36m": 0.05332,
+   "flagged_24m_by_seed": [
+    0.04,
+    0.0233,
+    0.05,
+    0.04,
+    0.06
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.85,
+   "final_after_months": [
+    4,
+    12
+   ],
+   "flagged_12m": 0.03598,
+   "flagged_24m": 0.11932000000000001,
+   "flagged_36m": 0.12866,
+   "flagged_24m_by_seed": [
+    0.12,
+    0.1133,
+    0.1233,
+    0.1167,
+    0.1233
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.8,
+   "final_after_months": [
+    4,
+    6
+   ],
+   "flagged_12m": 0.00066,
+   "flagged_24m": 0.007340000000000001,
+   "flagged_36m": 0.016,
+   "flagged_24m_by_seed": [
+    0.0067,
+    0.0067,
+    0.0033,
+    0.01,
+    0.01
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.8,
+   "final_after_months": [
+    5,
+    8
+   ],
+   "flagged_12m": 0.00532,
+   "flagged_24m": 0.027340000000000003,
+   "flagged_36m": 0.041999999999999996,
+   "flagged_24m_by_seed": [
+    0.04,
+    0.0267,
+    0.0233,
+    0.0267,
+    0.02
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.8,
+   "final_after_months": [
+    6,
+    9
+   ],
+   "flagged_12m": 0.02666,
+   "flagged_24m": 0.10733999999999999,
+   "flagged_36m": 0.13732,
+   "flagged_24m_by_seed": [
+    0.1,
+    0.0967,
+    0.13,
+    0.1367,
+    0.0733
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.8,
+   "final_after_months": [
+    4,
+    12
+   ],
+   "flagged_12m": 0.06334,
+   "flagged_24m": 0.20132,
+   "flagged_36m": 0.23734000000000002,
+   "flagged_24m_by_seed": [
+    0.2033,
+    0.19,
+    0.23,
+    0.22,
+    0.1633
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.75,
+   "final_after_months": [
+    4,
+    6
+   ],
+   "flagged_12m": 0.0,
+   "flagged_24m": 0.018660000000000003,
+   "flagged_36m": 0.04866,
+   "flagged_24m_by_seed": [
+    0.01,
+    0.0233,
+    0.0233,
+    0.01,
+    0.0267
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.75,
+   "final_after_months": [
+    5,
+    8
+   ],
+   "flagged_12m": 0.004,
+   "flagged_24m": 0.06936,
+   "flagged_36m": 0.12334,
+   "flagged_24m_by_seed": [
+    0.0667,
+    0.0567,
+    0.0767,
+    0.08,
+    0.0667
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.75,
+   "final_after_months": [
+    6,
+    9
+   ],
+   "flagged_12m": 0.02866,
+   "flagged_24m": 0.19666,
+   "flagged_36m": 0.27334,
+   "flagged_24m_by_seed": [
+    0.22,
+    0.1733,
+    0.1733,
+    0.21,
+    0.2067
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.75,
+   "final_after_months": [
+    4,
+    12
+   ],
+   "flagged_12m": 0.10868,
+   "flagged_24m": 0.34602,
+   "flagged_36m": 0.42801999999999996,
+   "flagged_24m_by_seed": [
+    0.3767,
+    0.3267,
+    0.34,
+    0.34,
+    0.3467
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.7,
+   "final_after_months": [
+    4,
+    6
+   ],
+   "flagged_12m": 0.00066,
+   "flagged_24m": 0.060660000000000006,
+   "flagged_36m": 0.16266,
+   "flagged_24m_by_seed": [
+    0.0733,
+    0.0533,
+    0.06,
+    0.0567,
+    0.06
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.7,
+   "final_after_months": [
+    5,
+    8
+   ],
+   "flagged_12m": 0.00866,
+   "flagged_24m": 0.18064,
+   "flagged_36m": 0.328,
+   "flagged_24m_by_seed": [
+    0.1833,
+    0.1833,
+    0.2033,
+    0.1933,
+    0.14
+   ],
+   "median_months": null
+  },
+  {
+   "health": 0.7,
+   "final_after_months": [
+    6,
+    9
+   ],
+   "flagged_12m": 0.050019999999999995,
+   "flagged_24m": 0.35,
+   "flagged_36m": 0.52068,
+   "flagged_24m_by_seed": [
+    0.37,
+    0.3433,
+    0.3533,
+    0.3567,
+    0.3267
+   ],
+   "median_months": 33
+  },
+  {
+   "health": 0.7,
+   "final_after_months": [
+    4,
+    12
+   ],
+   "flagged_12m": 0.15932,
+   "flagged_24m": 0.56066,
+   "flagged_36m": 0.67866,
+   "flagged_24m_by_seed": [
+    0.56,
+    0.53,
+    0.6,
+    0.56,
+    0.5533
+   ],
+   "median_months": 22
+  }
+ ],
+ "healthy_fraud": [
+  {
+   "health": 0.85,
+   "hidden": 0.3,
+   "flagged_12m": 0.004,
+   "flagged_24m": 0.37668,
+   "flagged_36m": 0.73134,
+   "flagged_24m_by_seed": [
+    0.37,
+    0.3667,
+    0.3867,
+    0.3567,
+    0.4033
+   ],
+   "median_months": 28
+  },
+  {
+   "health": 0.85,
+   "hidden": 0.5,
+   "flagged_12m": 0.10266,
+   "flagged_24m": 0.9793200000000001,
+   "flagged_36m": 1.0,
+   "flagged_24m_by_seed": [
+    0.9733,
+    0.9633,
+    0.9933,
+    0.9867,
+    0.98
+   ],
+   "median_months": 16
+  }
+ ],
+ "history": [
+  {
+   "name": "first design",
+   "alpha": 0.01,
+   "lag_months": 0,
+   "results": [
+    {
+     "hidden": 0.0,
+     "flagged_12m": 1.0,
+     "flagged_24m": 1.0,
+     "flagged_36m": 1.0,
+     "flagged_24m_by_seed": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "median_months": 3
+    },
+    {
+     "hidden": 0.1,
+     "flagged_12m": 1.0,
+     "flagged_24m": 1.0,
+     "flagged_36m": 1.0,
+     "flagged_24m_by_seed": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "median_months": 3
+    },
+    {
+     "hidden": 0.2,
+     "flagged_12m": 1.0,
+     "flagged_24m": 1.0,
+     "flagged_36m": 1.0,
+     "flagged_24m_by_seed": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "median_months": 3
+    },
+    {
+     "hidden": 0.3,
+     "flagged_12m": 1.0,
+     "flagged_24m": 1.0,
+     "flagged_36m": 1.0,
+     "flagged_24m_by_seed": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "median_months": 3
+    },
+    {
+     "hidden": 0.5,
+     "flagged_12m": 1.0,
+     "flagged_24m": 1.0,
+     "flagged_36m": 1.0,
+     "flagged_24m_by_seed": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "median_months": 3
+    }
+   ],
+   "hypotheses": "H0 1.0 / H1 0.7"
+  },
+  {
+   "name": "alpha 1%, lagged",
+   "alpha": 0.01,
+   "lag_months": 5,
+   "results": [
+    {
+     "hidden": 0.0,
+     "flagged_12m": 0.00099,
+     "flagged_24m": 0.00999,
+     "flagged_36m": 0.02001,
+     "flagged_24m_by_seed": [
+      0.0067,
+      0.0133,
+      0.0033,
+      0.0167,
+      0.0,
+      0.0133,
+      0.01,
+      0.0133,
+      0.01,
+      0.0133
+     ],
+     "median_months": null
+    },
+    {
+     "hidden": 0.1,
+     "flagged_12m": 0.00902,
+     "flagged_24m": 0.08532000000000001,
+     "flagged_36m": 0.166,
+     "flagged_24m_by_seed": [
+      0.0833,
+      0.0733,
+      0.1033,
+      0.11,
+      0.0767,
+      0.0733,
+      0.1,
+      0.0733,
+      0.09,
+      0.07
+     ],
+     "median_months": null
+    },
+    {
+     "hidden": 0.2,
+     "flagged_12m": 0.040999999999999995,
+     "flagged_24m": 0.35667,
+     "flagged_36m": 0.605,
+     "flagged_24m_by_seed": [
+      0.3367,
+      0.36,
+      0.3867,
+      0.3667,
+      0.3533,
+      0.3767,
+      0.3133,
+      0.3833,
+      0.3533,
+      0.3367
+     ],
+     "median_months": 32
+    },
+    {
+     "hidden": 0.3,
+     "flagged_12m": 0.13234,
+     "flagged_24m": 0.771,
+     "flagged_36m": 0.95767,
+     "flagged_24m_by_seed": [
+      0.7933,
+      0.7233,
+      0.78,
+      0.77,
+      0.7767,
+      0.8,
+      0.7367,
+      0.8,
+      0.7433,
+      0.7867
+     ],
+     "median_months": 18
+    },
+    {
+     "hidden": 0.5,
+     "flagged_12m": 0.6633199999999999,
+     "flagged_24m": 1.0,
+     "flagged_36m": 1.0,
+     "flagged_24m_by_seed": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "median_months": 12
+    }
+   ],
+   "hypotheses": "H0 1.0 / H1 0.7"
+  },
+  {
+   "name": "deployed",
+   "alpha": 0.001,
+   "lag_months": 5,
+   "results": [
+    {
+     "hidden": 0.0,
+     "flagged_12m": 0.0,
+     "flagged_24m": 0.00133,
+     "flagged_36m": 0.00232,
+     "flagged_24m_by_seed": [
+      0.0,
+      0.0033,
+      0.0,
+      0.0067,
+      0.0,
+      0.0,
+      0.0033,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "median_months": null
+    },
+    {
+     "hidden": 0.1,
+     "flagged_12m": 0.00033,
+     "flagged_24m": 0.00865,
+     "flagged_36m": 0.037,
+     "flagged_24m_by_seed": [
+      0.02,
+      0.0033,
+      0.01,
+      0.0033,
+      0.0033,
+      0.01,
+      0.0067,
+      0.0033,
+      0.0133,
+      0.0133
+     ],
+     "median_months": null
+    },
+    {
+     "hidden": 0.2,
+     "flagged_12m": 0.00067,
+     "flagged_24m": 0.10432999999999999,
+     "flagged_36m": 0.32166,
+     "flagged_24m_by_seed": [
+      0.09,
+      0.1,
+      0.14,
+      0.09,
+      0.1133,
+      0.12,
+      0.1167,
+      0.09,
+      0.0833,
+      0.1
+     ],
+     "median_months": null
+    },
+    {
+     "hidden": 0.3,
+     "flagged_12m": 0.00399,
+     "flagged_24m": 0.47201000000000004,
+     "flagged_36m": 0.86,
+     "flagged_24m_by_seed": [
+      0.4967,
+      0.4333,
+      0.5267,
+      0.4867,
+      0.5033,
+      0.49,
+      0.41,
+      0.4867,
+      0.4267,
+      0.46
+     ],
+     "median_months": 25
+    },
+    {
+     "hidden": 0.5,
+     "flagged_12m": 0.08499,
+     "flagged_24m": 0.99633,
+     "flagged_36m": 1.0,
+     "flagged_24m_by_seed": [
+      0.9933,
+      1.0,
+      0.9933,
+      1.0,
+      0.9967,
+      0.9933,
+      0.9933,
+      0.9967,
+      1.0,
+      0.9967
+     ],
+     "median_months": 15
+    }
+   ],
+   "hypotheses": "H0 1.0 / H1 0.7"
+  }
+ ]
+}

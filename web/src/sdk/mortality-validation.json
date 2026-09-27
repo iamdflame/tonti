@@ -1,0 +1,119 @@
+{
+ "source": "mortality.json",
+ "pairs": 7680,
+ "worst_abs_annuity_error": 0.013548182264828679,
+ "p95_abs_annuity_error": 0.00596235167272785,
+ "median_abs_annuity_error": 0.001552189796720338,
+ "worst_by_start_age": {
+  "50": 0.007374338663568958,
+  "55": 0.007506187007530363,
+  "60": 0.008041339248086699,
+  "65": 0.010507173435765793,
+  "70": 0.010358793253356757,
+  "75": 0.011587644623968885,
+  "80": 0.013548182264828679,
+  "own age": 0.010080453983089765
+ },
+ "worst_cases": [
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1963,
+   "from": 80,
+   "annuity_error": 0.013548182264828679,
+   "survival_error": 0.011330055051076038
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1962,
+   "from": 80,
+   "annuity_error": 0.013515933933516022,
+   "survival_error": 0.01112528418233466
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1964,
+   "from": 80,
+   "annuity_error": 0.013498261389361943,
+   "survival_error": 0.011539333153420095
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1965,
+   "from": 80,
+   "annuity_error": 0.013400899169824232,
+   "survival_error": 0.01165028199952356
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1967,
+   "from": 80,
+   "annuity_error": 0.01323042214770842,
+   "survival_error": 0.011912944909827083
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1966,
+   "from": 80,
+   "annuity_error": 0.013194812189332827,
+   "survival_error": 0.011602999651098789
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1968,
+   "from": 80,
+   "annuity_error": 0.012816907910655706,
+   "survival_error": 0.011582301675531537
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1961,
+   "from": 80,
+   "annuity_error": 0.012598016168942294,
+   "survival_error": 0.010055344908126373
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1960,
+   "from": 80,
+   "annuity_error": 0.01250013005219297,
+   "survival_error": 0.009846703881103536
+  },
+  {
+   "iso3": "MMR",
+   "sex": "female",
+   "born": 1959,
+   "from": 80,
+   "annuity_error": 0.012341149606871049,
+   "survival_error": 0.00966993238637015
+  }
+ ],
+ "from_later_ages": {
+  "85": {
+   "pairs": 1488,
+   "worst": 0.01304342561660543,
+   "p95": 0.007686213983281176,
+   "median": 0.002791830001146245
+  },
+  "90": {
+   "pairs": 1608,
+   "worst": 0.017049024505342514,
+   "p95": 0.011011844511961577,
+   "median": 0.002522144712482577
+  },
+  "95": {
+   "pairs": 1608,
+   "worst": 0.037401328023102476,
+   "p95": 0.020699761886921575,
+   "median": 0.0046282367175241035
+  }
+ }
+}

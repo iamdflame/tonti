@@ -1,0 +1,166 @@
+{
+  "payoutFraction_gas": 150078,
+  "pool_month": {
+    "cohorts": 300,
+    "contribute_avg_gas": 240597,
+    "dearest_item_gas": 1241257,
+    "deaths": 6,
+    "gas_per_member_month": 301967.7733333333,
+    "join_avg_gas": 458088,
+    "members": 300,
+    "one_item_month_gas": 291426122,
+    "page": 50,
+    "phases_one_item_per_tx": {
+      "begin + first release": {
+        "avg_gas": 722978,
+        "items": 1,
+        "max_gas": 722978
+      },
+      "book income": {
+        "avg_gas": 178381,
+        "items": 300,
+        "max_gas": 576205
+      },
+      "credit + income sale": {
+        "avg_gas": 182815,
+        "items": 300,
+        "max_gas": 630255
+      },
+      "mint units": {
+        "avg_gas": 222492,
+        "items": 2,
+        "max_gas": 245690
+      },
+      "pay beneficiary": {
+        "avg_gas": 186494,
+        "items": 7,
+        "max_gas": 223379
+      },
+      "rebalance apply": {
+        "avg_gas": 160340,
+        "items": 301,
+        "max_gas": 207579
+      },
+      "rebalance begin": {
+        "avg_gas": 377946,
+        "items": 1,
+        "max_gas": 377946
+      },
+      "rebalance plan": {
+        "avg_gas": 173370,
+        "items": 300,
+        "max_gas": 1241257
+      },
+      "release (death/exit)": {
+        "avg_gas": 296897,
+        "items": 6,
+        "max_gas": 367674
+      },
+      "weigh (Actuary q, payout)": {
+        "avg_gas": 260535,
+        "items": 300,
+        "max_gas": 463761
+      }
+    },
+    "rebalance_dearest_tx": 4159370,
+    "rebalance_gas": 40758221,
+    "rebalance_txs": 13,
+    "settle_dearest_tx": 5869860,
+    "settle_gas": 49832111,
+    "settle_txs": 19,
+    "usd_per_member_month_at_4000": 0.03295072342613333
+  },
+  "qMonth_gas": 36520,
+  "quote": [
+    {
+      "escalating": false,
+      "evm_gas": 43240,
+      "gas": 853069,
+      "hostio_ink": 824334,
+      "opcode_ink": 7872744606,
+      "p50_start_usdg": 25.518232,
+      "paths": 16
+    },
+    {
+      "escalating": true,
+      "evm_gas": 45340,
+      "gas": 866634,
+      "hostio_ink": 842814,
+      "opcode_ink": 7987250383,
+      "p50_start_usdg": 22.518829,
+      "paths": 16
+    },
+    {
+      "escalating": false,
+      "evm_gas": 43240,
+      "gas": 1686347,
+      "hostio_ink": 824334,
+      "opcode_ink": 16205524941,
+      "p50_start_usdg": 26.148498,
+      "paths": 64
+    },
+    {
+      "escalating": true,
+      "evm_gas": 45340,
+      "gas": 1725702,
+      "hostio_ink": 842814,
+      "opcode_ink": 16577929646,
+      "p50_start_usdg": 21.499613,
+      "paths": 64
+    },
+    {
+      "escalating": false,
+      "evm_gas": 43240,
+      "gas": 2794629,
+      "hostio_ink": 824334,
+      "opcode_ink": 27288343508,
+      "p50_start_usdg": 26.148498,
+      "paths": 128
+    },
+    {
+      "escalating": true,
+      "evm_gas": 45340,
+      "gas": 2870870,
+      "hostio_ink": 842814,
+      "opcode_ink": 28029617175,
+      "p50_start_usdg": 21.605742,
+      "paths": 128
+    },
+    {
+      "escalating": false,
+      "evm_gas": 43240,
+      "gas": 5012500,
+      "hostio_ink": 824334,
+      "opcode_ink": 49467051250,
+      "p50_start_usdg": 26.086077,
+      "paths": 256
+    },
+    {
+      "escalating": true,
+      "evm_gas": 45340,
+      "gas": 5181735,
+      "hostio_ink": 842814,
+      "opcode_ink": 51138257603,
+      "p50_start_usdg": 21.463437,
+      "paths": 256
+    },
+    {
+      "escalating": false,
+      "evm_gas": 43240,
+      "gas": 9458297,
+      "hostio_ink": 824334,
+      "opcode_ink": 93925024049,
+      "p50_start_usdg": 26.22549,
+      "paths": 512
+    },
+    {
+      "escalating": true,
+      "evm_gas": 45340,
+      "gas": 9760544,
+      "hostio_ink": 842814,
+      "opcode_ink": 96926352923,
+      "p50_start_usdg": 21.476368,
+      "paths": 512
+    }
+  ]
+}

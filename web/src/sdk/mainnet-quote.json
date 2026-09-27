@@ -1,0 +1,28 @@
+{
+ "input": {
+  "country": "PHL",
+  "sex": "female",
+  "born": 1966,
+  "start_age": 62.0,
+  "lump_usd": 3000.0,
+  "monthly_usd": 30.0
+ },
+ "actuary": "0x4cd86134f0ec64263df710f0414d21a18d116525",
+ "at": 1790478089,
+ "seconds": 1.01,
+ "gas": 9522504,
+ "paths": 512,
+ "income_start": [
+  22.885488,
+  25.281012,
+  27.713583
+ ],
+ "income_at_85": [
+  21.277551,
+  29.268549,
+  39.978476
+ ],
+ "solo_runout_age": 80.41666666666667,
+ "solo_outlive_probability": 0.4990400157938465,
+ "summary": "a female born 1966 in PHL with $3,000 + $30/month gets $25.28/month for life from 62 (P10 $22.89, P90 $27.71); drawn alone the same income runs out at 80.4, with a 50% chance of still being alive (1.0 s, 9,522,504 gas)"
+}
