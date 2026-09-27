@@ -238,6 +238,31 @@
     - faded locked steps failed contrast;
     - the 404 page had no `lang` and wasn't branded.
   - **found in review:** the landing said the mortality tables are "sealed forever" while the live v1 Actuary has no seal. The claim is now stated as happening at launch until the pool is live.
+- **Skeptic pass 4 (2026-09-27; the session ended mid-run; findings saved to `runs/artifacts/skeptic4-findings.md`).**
+  - **HIGH, fixed:** a second false death overwrote what the first still owed. `m_owed` now accumulates.
+  - **MEDIUM, fixed:**
+    - A restore and a real death in one run re-enrolled the dead. She now stays released, and the repayment goes to her estate.
+    - A restore repayment added to an already-queued deposit was minted from uninvested USDG. It now waits in `m_restored` for a month.
+    - An exited member still owed was re-enrolled at risk. She is now repaid in cash.
+    - The keeper never returned an estate while the member was OWED, and the hold was anchored at the first death. The estate now comes back inside the restore, and every reported release restarts the hold.
+    - A false report kept the income dated after it. That income is now held in `m_post` and returned on revival, otherwise credited to survivors after the year.
+    - Governance could shorten the identity period to presume on-schedule members dead. It is now 400–730 days, lengthen only.
+    - Governance could stop settlement through the Treasury bounds. Staleness is now ≥ 26 h and slippage ≥ 0.3%.
+    - A guardian-reliant member could be taken over by one attester statement. The payout wallet can now cancel a recovery.
+    - The phone thief is paid by the victim's own renewals and inherits at presumption. Disclosed in full in README and spec; not closable on-chain without a second trusted step.
+    - Round-3 registry and pool guards whose mutations survived: tests added. The registry suite now kills 23/23; the pool suite has 37 mutations (run in progress).
+  - **LOW, fixed:**
+    - presumption mid-recovery;
+    - `reporterOf` surviving a revival;
+    - the exit window is now 150 days (it had been shorter than the recovery window);
+    - stale 14-day texts;
+    - no `owed` flag in the SDK.
+  - Tests: pool 32, registry 32, governance 3, Treasury fork 10 (Rust 68, Solidity 45).
+- **Git history:** Dave wanted the build's history visible, not one squashed commit. The first commit was rebuilt into 44 logical commits in build order, with no backdating; every file lands in exactly one commit, and the final tree is identical. Fixes since are separate commits. Public repo: https://github.com/iamdflame/tonti.
+- **Deploy status (2026-09-27 23:40 UTC):**
+  - Dave's top-up landed on Arbitrum One (0.0044 ETH). The Relay bridge to Robinhood Chain was denied by the auto-mode classifier as a real-world transaction; it waits for Dave.
+  - Privy and WalletConnect are live on Vercel. The first Privy deploy looped (React #185) and was rolled back within about 3 minutes, fixed and redeployed.
+  - The Alchemy key is not exposed: there is no gas policy yet.
 **Disclosed facades:** none in the product. One in the tooling, marked `facade-ok` in `engine/ink-meter/src/{host,main}.rs`, **awaiting Dave's OK**:
 - **What:** the gas meter answers the pool's calls to the Solidity Treasury, LifeRegistry and USDG with stand-ins.
 - **What they return:** plausible values (sale proceeds at oracle price less 0.1%, vault shares at 1.008, registry statuses).
