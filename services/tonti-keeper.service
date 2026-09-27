@@ -1,0 +1,21 @@
+# Tonti keeper as a systemd user service: settles each month in pages, rebalances, pushes income,
+# queues due exits. Anyone may run a keeper; it needs gas money and never holds member funds.
+#
+#   cp services/tonti-keeper.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now tonti-keeper
+#   journalctl --user -u tonti-keeper -f
+#
+# The key file is mode 600 (a hex key or a PRIVATE_KEY= line). A dedicated keeper key with only
+# gas money is better than the deployer's.
+[Unit]
+Description=Tonti keeper (Robinhood Chain)
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/Pictures/arbit
+ExecStart=/usr/bin/python3 services/keeper.py %h/Pictures/arbit/.env
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=default.target
