@@ -123,13 +123,17 @@ contract Treasury is IUnlockCallback {
     }
 
     function setMaxStaleness(uint256 seconds_) external onlyOwner {
-        require(seconds_ >= 1 hours && seconds_ <= 96 hours, "bounds");
+        // At least 26 hours (skeptic review 4): feeds update daily, and a shorter limit would stop
+        // every settlement.
+        require(seconds_ >= 26 hours && seconds_ <= 96 hours, "bounds");
         maxStaleness = seconds_;
     }
 
     /// @notice Bounded: at most 2%.
     function setMaxSlippageBps(uint256 bps) external onlyOwner {
-        require(bps <= 200, "bounds");
+        // At least 0.3% (skeptic review 4): measured fills sit up to ~0.13% from the oracle, so a
+        // tighter bound would make every sale revert and stop income.
+        require(bps >= 30 && bps <= 200, "bounds");
         maxSlippageBps = bps;
     }
 
