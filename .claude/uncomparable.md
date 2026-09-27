@@ -1,0 +1,249 @@
+# Uncomparable build contract
+<!-- While this file exists, the /uncomparable guard hooks act on this project. Delete it to switch them off. -->
+**Wait — what?** CPF LIFE for the people CPF leaves out: a pension with no pension fund, paying you (and your mother) USDG for as long as you live, funded by the S&P 500, T-bills and the strangers in your pool.
+**Pain:** 1,635,700 foreign workers in Singapore (MOM, Dec 2025) have been excluded from CPF since 2003, and their parents usually have no pension · every month for the rest of their lives · today they send remittances with nothing lifelong behind them, rely on their children, or keep working · evidence: ILO 2024–26 (only 24% of South Asia's elderly get a pension), Allianz 2026 (67% fear running out of money more than death), US executive order Aug 2025 plus the DOL rule of Mar 2026 (both name longevity pools), CPF LIFE, Tontine Trust
+**Gasp test:** a stranger brings their own (or their mother's) age, sex and country → sees their lifelong monthly income (P10/P50/P90), next to what the same money pays when drawn down alone, in ≤2 s, computed on-chain by the engine. They join with USDG on Robinhood Chain mainnet and their account is live. Nothing staged.
+**Core (the hard part):** a Stylus (Rust, fixed-point) actuarial engine: mortality fit to UN WPP 2024, natural-tontine payout rate, fair mortality-credit allocation across mixed ages, sexes, countries and balances using cohort accumulators, and an SPRT ghost-member detector. Around it: proof of life that never pays the dead.
+**Depth:** quotes at L3: the Actuary is live on mainnet and the public site computes every quote in the visitor's browser by eth_call (judged 20/20 on random inputs). Pool core at L2: settlement and replay run on inputs I didn't pick, activation dry-runs and mainnet-fork tests pass. The pool relaunch (Actuary v2 + core + timelock) is blocked only on ~0.003 ETH more from Dave; the key is funded with 0.0022. Target L3+  (L0 mock · L1 my inputs · L2 a stranger's input · L3 deployed, real data and scale, failures handled · L4 real users)
+**Measured:**
+- **Fixed-point (Q64.64) against mpmath at 50 digits,** n = 20,000, 0 errors (`engine/tests/precision.py`). Worst error:
+  - exp: 2.4e-19 absolute, 1.1e-18 relative
+  - ln: 1.3e-18 absolute, 9.5e-19 relative
+  - sqrt: 6.9e-19 absolute, 1.0e-18 relative
+  - pow: 3.3e-18 absolute, 3.8e-18 relative
+- **Fairness of credit allocation,** measured through the real ledger (`actuary-cli fairness`; bias is E[net]/(q·T); every survivor credit reproduced exactly from the formula).
+  - **found and fixed (2026-09-27):** plain h·value weights short-change a small pool's biggest members. I derived the first-order bias as −s_i + Σs². The correction y = w·(1 + s − Σs²) preserves Σy = W, uses an extra 256-bit Σw² accumulator in the weigh pass, and rounds Σs² up so credits can never exceed the release. A float prototype predicted RMS 2.2% → 0.28% at N=100 before it was built.
+  - Measured, same members and deaths under both rules:
+    - N=20: worst +34% / RMS 31% → +10.5% / 4.9% (still significant, mean |z| 1.86)
+    - N=100: −6.8% / 4.8% → **−1.6% (SE 1.4%) / 0.26%**, mean |z| 0.11, which is noise
+    - N=1,000: −0.98% / 0.64% → +0.30% (SE 0.50%) / 0.18%
+    - N=10,000, 20k trials: −0.13% / 0.051% → +0.03% (SE 0.15%) / 0.012%, mean |z| 0.077, with 199M exact ledger checks. A 4k-trial run was noise-dominated (0.08% vs 0.12%); 5× the trials settled it.
+  - Core 24/24, including a random test that Σy ≤ W over 20k weight sets. Pool 15/15, still byte-identical when paged. The pool is 50.5 KB and passes activation.
+  - Pools under ~50 members still need Sabin's exact plan: designed, not built.
+- **Ledger:** exact share conservation over 10k random settlements; income booking never pays out more than the USDG received.
+- **Quote engine against an independent float64 re-implementation** (same SplitMix64, Acklam and 256-node return table, `engine/tests/reference_quote.py`): agrees to **9.1e-13 relative** over 40 random quotes. The test first caught a harness bug (the seed was parsed as f64) that was producing different market paths.
+- **Gas, before deployment** (`engine/ink-meter`, 2026-09-26). The deployable WASM is instrumented exactly as Stylus v3 meters it (nitro `pricing_v1`, 2,450-ink block headers, host-function prices, memory model) and run under wasmi with the host functions implemented. The Solidity side is charged its Foundry mainnet-fork gas; chain parameters come from ArbWasm and ArbGasInfo: 10,000 ink per gas, 32M per-transaction cap. These are lower bounds by each program's init gas, to be confirmed with `cast estimate`.
+  - **found: the on-chain quote could never have run.** 64 paths needed 48.3M gas and 512 paths about 380M, against a 32M cap.
+  - **Profiled by function:** the per-month inverse normal and `exp`, u128 library calls through memory, and Stylus's per-basic-block charge.
+  - **Fixed:**
+    - a moment-matched 256-node return table, with path-independent terms precomputed
+    - 32-bit-limb `mul_wide` (branch-free, inlined)
+    - Knuth D `div_wide` with a 4-step short division for divisors under 2³²
+    - both are bit-identical to the old arithmetic on 2M random inputs plus edge cases; a mutation of the add-back branch fails the test; the mpmath precision figures are unchanged
+  - **now:** 512 paths **9.46M gas** (29.6% of the cap), 64 paths 1.69M; `payoutFraction` 150k; `quote()` capped at 512 paths
+  - **pool month** (300 members, 300 cohorts, 6 deaths): pages of 50 give settlement in 19 transactions and rebalance in 13; dearest page 4.9M gas; **287k gas ≈ $0.03 per member-month**. The keeper page size is now 100 items.
+  - personas moved within Monte Carlo noise with the new sampling: Maria level P50 $161.51 (was $161.52), at 85 $188.98; escalating at 85 $246.76
+- **Stylus activation dry-run on Robinhood Chain mainnet** (`cargo stylus check`, 2026-09-26, paged pool with exits):
+  - Actuary: **33.9 KB** (149 KB raw), fee 0.000162 ETH
+  - TontiPool: **44.6 KB** (218 KB raw), fee 0.000213 ETH
+  - **found:** ArbOS also caps the *uncompressed* WASM. The paged pool at opt-level 3 (56.2 KB compressed, 288 KB raw) was refused with a bare revert. The contract crates are now built at opt-level "z", while the native CLI stays at 3. Raw headroom is about 60 KB and is watched.
+- **Treasury against live Robinhood Chain mainnet state** (forge fork tests, 7/7 pass). Swaps go directly through the v4 PoolManager unlock callback, with no modified router:
+  - $1,000 buys 1.2954 SPY, which sells back for $998.75: a 12.5 bps round trip
+  - $1,000 buys 9.8837 SGOV, which sells back for $999.05: a 9.5 bps round trip
+  - the Morpho cash-sleeve round trip is lossless (±2 raw units)
+  - the stale-feed guard refused prices at 28 h old
+  - the zero-slippage guard rejected a fill worse than the oracle
+- **Mortality fit to UN WPP 2024,** 1,704 cohorts (12 countries × 2 sexes × birth years 1935–2005), per-cohort Gompertz–Makeham along each cohort's diagonal (`actuarial/fit_mortality.py`):
+  - **found (skeptic):** the 0.66% below was measured at the wrong ages. From the ages income actually starts (50–80, `actuarial/validate_fit.py`, 7,728 pairs) the v1 fit's worst error was 3.09%. Refit with an annuity-targeted objective: **worst 1.13%, p95 0.36%, median 0.07%**. The live v1 Actuary still holds the old fit until the relaunch
+  - old figure: worst annuity-factor error 0.66%, worst survival error 0.035 (0.054 for Singapore women, the late-age plateau; their ä error is 0.32%)
+  - the first version (one improvement rate shared by all ages) reached 9.8% ä error and was replaced
+- **Contracts:**
+  - `TontiPool`: 11/11 TestVM tests with byte-exact mocks, including:
+    - forward-priced 80/20 unit split
+    - paying cohort sells fee + payout exactly; income held while lapsed and paid when alive
+    - a death credits the survivor, matching the core ledger exactly; the heir gets the 20% bequest; the dead can't claim or contribute
+    - level and escalating members of the same birth year are separate cohorts, each paid its own plan's fraction (exact ratio 4.0/3.3), matching the core ledger exactly
+    - **paged settlement:** a busy month (a death, a bequest, both plans paying, a top-up) settled one item per transaction (29+ transactions) is byte-identical to settling it in one, and so is the rebalance after it. Deposits, parameter changes and rebalances are refused mid-run.
+    - **exits:** after notice, the member gets 99% of the at-risk shares plus the bequest share (24.79 USDG of 25). The stayer gets exactly the 1%. Refused cases: a stranger giving notice, a lapsed member exiting, too early, a paying member. A death during notice releases the member as a death, once.
+    - **mutation tests:** dropping one running total from the page state, or zeroing the exit fee, each fails the suite
+  - `Actuary`: 4/4 TestVM tests. Each plan is priced exactly as the core prices it; escalation is owner-only and bounded to 0–4%; the escalating quote starts lower and ends higher; quotes are deterministic
+  - `LifeRegistry`: 7/7 tests with real P-256 WebAuthn signatures
+- **Paged settlement in the core** (`ledger::step`, `rebalance::step`): the paged order, with each cohort's fee charged at first touch, equals the one-shot `Epoch::settle` + `book_income` **exactly** over 10,000 random settlements. The one-shot path is now built from the same steps.
+- **Scalability bugs found and fixed** (a skeptic would have found them):
+  - `settle()` looped over every cohort, deposit and death in one transaction. With permissionless `join`/`contribute`, a few dollars of dust accounts could push it past the block gas limit and stop everyone's income.
+  - estate income lookups walked epoch history linearly (millions of gas per death with daily epochs); now a binary search
+  - contributions under 1 USDG are refused
+- **Governance:**
+  - The Actuary's market setter is now bounded as the spec says: r 0–6% and ≥ escalation, SPY return −5–15%, volatility 1–50%, safe rate 0–10%. Before, it accepted any value.
+  - The pool has a guardian pause: it stops new business and the start of runs, but claims, withdrawals and death reports continue, and it can't unpause or move money.
+  - `deploy.sh` hands all four contracts to a 48-hour OpenZeppelin TimelockController.
+  - Tests: Actuary 5/5, pool 12/12, and Foundry `Governance.t.sol` 3/3 (no direct control after the handover; nothing executes before 48 h; the timelock can't bypass a contract's bounds).
+- **found and fixed: nothing verified a member's age.**
+  - The cohort key (birth year, sex, country) was self-declared. Claiming to be older, the classic tontine fraud, would have collected credits priced for a higher death risk.
+  - `enroll` counted as a strong proof, guardians (the member's own choice) counted as one too, and the "annual strong proof" in the README was never enforced (`lastStrong` was never read).
+  - Now the registry stores the key at enrolment. Income and exits need ACTIVE/DUE, plus identity confirmed by an allow-listed adapter bound to the key, plus a strong proof within 400 days. Guardians refresh liveness only.
+  - Built adapter: `AttestedIdentity` (EIP-712, operator attester, disclosed as trusted).
+  - Tests: LifeRegistry 9/9, including 5 kinds of bad attestation refused, a rogue verifier refused, guardians unable to unlock income, and passkey-only members lapsing at 400 days. Pool 12/12, whose byte-exact enrolment mock now carries the key. SDK e2e on anvil: viem-signed attestation accepted, older-birth-year statement refused.
+  - Spec §6 now matches the code. Death-report bounty, revival reserve and on-chain SPRT holds are marked designed, not built.
+- **Ghost-member detector on-chain** (it was simulation only). Wald's SPRT per group (country × birth decade) runs inside paged settlement: deaths are counted in the release pass, members × q in the weigh pass, and the update in the book pass. A HiddenDeaths flag holds the group's claims and exits until each member gives a strong proof dated after it.
+  - Pool 13/13: flagged at the second month of 9.9 expected and 0 reported deaths; the claim is refused, then released by a fresh strong proof. Removing the hold makes the test fail.
+  - It still runs with λ̂ = 1, as the power was measured; the learned experience ratio is disclosed as not built.
+  - Gas with the detector: 301k per member-month (was 287k); dearest page of 50 is 5.8M; pool 48.4 KB, which passes activation.
+- **Size budget clarified:** padding the pool WASM with zero-filled custom sections to 280 KB still activates, and the fee doesn't change. So activation ignores custom sections, and the opt-level-3 failure was the per-function limits (10 KB frame), not total bytes. Activation is re-checked after every change.
+- **Attester tool** `sdk/ts/bin/attest.ts`: refuses to sign unless the document's birth year, sex and country give exactly the member's on-chain cohort key. End-to-end on anvil: a document ten years older is refused, the correct one is submitted, and the member becomes payable.
+- **Deploy rehearsal** on an anvil fork of Robinhood mainnet (2026-09-27; only the two Stylus deploys stubbed, since anvil can't run WASM). `deploy.sh` ran end to end: Treasury, LifeRegistry, AttestedIdentity, wiring, 2 mortality batches plus market (PHL), a 48-hour TimelockController, guardian, and the ownership handover.
+  - Verified on the fork: Treasury and LifeRegistry are owned by the timelock with the right pool; the verifier is allow-listed and bound to the registry; the delay is 172,800 s.
+  - `Treasury.prices()` reverted `StalePrice`: the SPY feed was 32 h old over the weekend, and the 26 h guard refused it on live data, as designed.
+  - Not rehearsable here: `cargo stylus deploy` itself (its activation dry-runs pass).
+- **found and fixed: a dead Uniswap pool would have frozen the pool forever.** The Treasury's swap routes were fixed at construction, so if one pool lost liquidity, every settlement selling that sleeve would revert, income would stop and deposits would freeze, with no way out. Now `setRoute` (owner, meaning the 48-hour timelock) accepts only a USDG/sleeve-token pair with no hooks, and every fill stays bounded by the oracle check.
+  - Fork 8/8: non-owner, wrong pair, hooks and bad sleeve are refused. An uncreated pool reverts the trade; the live 0.30% SPY/USDG pool fills $1,000 within the bound (1.2927 SPY, versus 1.2954 on the 0.05% pool). Switching back works.
+  - The test also found that the fallback exists: mainnet already has a second SPY/USDG pool.
+- **Death-report bounty: built, then REMOVED (2026-09-27, skeptic finding).** It made a false report profitable, and the beneficiary's estate already motivates honest reports. The history below is kept for the record: A final *reported* death pays the reporter six months of the member's last at-risk income, capped at 10% of the release, taken from the released shares before survivors are credited; presumed deaths pay none. The registry records `reporterOf` at finalisation.
+  - Pool 14/14: the reporter is owed exactly the ledger's figure (~0.60 USDG = 6 × 0.4% × 25), and the survivor's cohort matches the ledger to the share.
+  - Foundry 20/20.
+  - Gas: a death release ~290k (was 252k); the member-month is unchanged at 301k; pool 49.6 KB, which passes activation.
+- **No money in before identity.** With income and exits gated on identity, money paid in by an unverified member could never have come out. `contribute` now requires `LifeRegistry.identified`, and the SDK refuses early with a clear message.
+  - Pool 15/15, including the gate.
+  - Gas: contribute 240k (was 226k); pool 49.8 KB, which passes activation.
+- **Reproducible by a stranger:**
+  - The README's "Run it" block had `cargo test` at the repo root, where there's no workspace, and hard-coded this machine's `/dev/shm` and `/media/dflame` paths in 14 files.
+  - Now one resolver (`actuarial/paths.py`: TONTI_DATA / TONTI_RUNS / CARGO_TARGET_DIR, else this machine's drives, else `data/`, `runs/`, `engine/target`) serves every script. `engine/.cargo-env` only uses RAM where /dev/shm exists, and Foundry defaults to the repo.
+  - The whole block ran from a clean environment (`env -i`): Rust 44/44, personas, the float reference to 9.1e-13, Foundry 20/20, SDK 6/6. The replay reproduces its published results.
+- **Keeper** now queues exits whose notice has run, and reads cast's multi-value output line by line (large numbers are annotated, which would have shifted fields).
+- **Analysis, not code, for the detector baseline.** A learned λ̂ (even floored at 0.8) makes day-one concealment of 30% invisible: the LLR drifts down. So λ̂ = 1 stays, and its false-alarm cost (37% within 24 months for an honest group 20% healthier) is disclosed with the reason.
+- **found and fixed: passkey ghosts.** Heirs holding a passkey could check in forever: income stopped at 400 days, but presumption never triggered, so the ghost's balance was never released to survivors. Now:
+  - an identified member can be presumed dead after 800 days without an identity proof, dated at the last one
+  - it ships with the revival reserve: 5% of each presumed release, pooled, flowing to survivors at 1/60 a month. A member revived within 5 years (identity-bound, never for reported deaths) is repaid their released shares from it via `restore` and the month's sale.
+  - Tests: LifeRegistry 11/11 (a ghost presumed through 11 check-ins; revival needs the right key; the 5-year window and reported deaths are final). Pool 16/16 (exactly 5% held and 95% credited; 1/60 decay; repayment at the sale price; refused before revival and for the non-presumed). A mutation dropping the decay fails the test.
+  - Gas unchanged at 302k per member-month; pool 51.4 KB, which passes activation.
+- **Passkeys are cheap on this chain:** the RIP-7212 P-256 precompile at 0x100 is live on Robinhood mainnet. A Node-generated signature returns 1, a tampered one returns empty, and verification costs ~3,450 gas (31,203 for the whole tx including 21k base and calldata), against ~300k for OZ's Solidity fallback in local tests.
+- **SDK** (`sdk/`):
+  - The ABIs are generated from the contracts: Stylus `export-abi` plus events, compiled by Foundry. This found that `setExitNotice(uint256 seconds)` made the exported interface invalid Solidity, since `seconds` is reserved; it has been renamed.
+  - The viem client type-checks against those ABIs.
+  - Tests 6/6, including an end-to-end passkey test: a real P-256 WebAuthn assertion, converted by the SDK, is accepted by the real LifeRegistry bytecode on anvil. A wrong challenge, tampered client data and raw high-s are each rejected.
+- **Rebalance:**
+  - the core `plan`/`apply` conserves every share exactly over 10k random scenarios
+  - opposite wishes cross internally (an old cohort's excess SPY went to a young cohort with 0 SPY sold)
+  - in the pool, a young cohort moved from all-cash to about 80% SPY / 14% SGOV / 6% cash, matching the core exactly
+- **Ghost detector, recalibrated (2026-09-27; `engine/tests/ghost_power.py` → `runs/ghost-detector.json`, 10 seeds × 300 runs, 3,300 PHL women, honest deaths reported 4–6 months late):**
+  - **found:** the first design compared deaths finalised this month with deaths expected this month; with a realistic reporting lag it flagged **100% of honest groups by month 3**
+  - now each epoch's final deaths are compared with the deaths expected `lag` epochs earlier (8-slot ring), α 0.1%, and a flag gives 120 days to renew identity before income is held
+  - deployed setting: honest groups flagged 0.13% within 24 months (0.23% within 36); 30% hidden: 47% within 24 months, 86% within 36; 50% hidden: 99.6% within 24 months (median 15)
+- **Superseded (old detector, no reporting lag):** 3,300 women aged 60–70, 3-year horizon, 300 runs per row:
+  - 0% false alarms
+  - 30% of deaths hidden: flagged 81% of the time within 24 months (median 15 months)
+  - 50% hidden: flagged 100% within 24 months (median 7)
+  - 20% hidden: 37% within 24 months; 10% hidden: 8%
+  - So it is a backstop against *systematic* fraud; small-scale fraud relies on the annual strong proof and the death-report bounty
+- **Guard hardening:** the facade scan now skips vendored git checkouts and Rust `#[cfg(test)]` modules. The project scan shows 0 undisclosed facades, and a fixture confirmed the scan still flags a real production mock.
+- **Upstream bug found in `stylus-test` 0.10.9:** `read_return_data` returns the *last-registered* mock's bytes for every call, which breaks any multi-call test. Vendored a two-line fix in `engine/vendor/stylus-test`. Not yet reported upstream (a public action; Dave decides).
+- **Recon (2026-09-26, mainnet):**
+  - SPY/USDG costs −3.1 to −2.2 bps from $100 to $10k (0.05% pool)
+  - SGOV/USDG costs +0.5 to +3.8 bps from $100 to $10k (0.0375% pool)
+  - QQQ fails at $1k
+  - feeds were stale 20–28h over the weekend
+  - Morpho steakUSDG holds $511.7M
+- **Historical replay** (`actuarial/replay.py` → `actuary-cli replay`, the production ledger; `runs/replay.json`). 2,000 Philippine women with $10,000 each retire at 65, with UN death rates, CRSP/T-bill returns, Shiller CPI, the 0.30% fee and measured trading costs (the benchmarks pay none):
+  - the pool's exact income stream, drawn alone, ran out in 1977, 1985 and 2014 with 49%, 51% and 52% still alive (48–54% across 21 death draws)
+  - real income, level plan (yr 1 → yr 10 → lowest): 1965 $1,013 → $684 → $550; 1973 $926 → $630 → $582; 2000 $882 → $570 → $434
+  - escalating plan lowest: $651, $640 and $572, better than level in every cohort
+  - against the 4% rule ($400 real): the pool paid more in every year with 100+ alive, in all 21 draws (worst $427, the 2000 cohort in 2022). Below 15 survivors, a one-cohort replay's credits get lumpy: 2 of 21 draws dipped to $379–$383
+  - pooling gain against the same rule without pooling: 1.3–1.5× at year 10, 2.9–4.3× at year 20
+  - **found:** a period table frozen in 2021 (COVID) would have overpaid 39% for that year. Foresight pricing passed the extra deaths on as credits (+9%). The Actuary prices from fitted cohort curves, which behave like the foresight run.
+  - **found:** from 2000 to 2023 the mix earned 3.4% nominal against 3.5% pricing plus the fee, so level real income fell 51%. That's why the Escalating plan exists, and why this is disclosed in the README.
+- **Personas reproducible** (`actuarial/personas.py`; before this they came from an unsaved inline script):
+  - Maria, level: P50 $161.51 at start, $188.98 at 85
+  - Maria, escalating: $129.48 at start, $246.76 at 85; the chance of outliving the same income drawn alone falls from 47% to 17%
+  - her mother, escalating: $21.60 at start, $39.77 at 85
+- **Skeptic pass 1 (15 findings) fixed, 2026-09-27:**
+  - top-up snapshot (`topped_up_snap`)
+  - death reports: a 120-day challenge; revival within 5 years; the bond held 365 days and paid to a revived member; no bounty; a 5% reserve on every death
+  - exit re-checks and a 90-day notice lapse
+  - Actuary v2 with `seal()`, the fee and input bounds
+  - deployer-only `init`
+  - a 30-day verifier delay
+  - identity statements with action and `issuedAt`, so they can't be replayed
+  - `abort_rebalance`
+  - payout, beneficiary and guardians in the registry, plus `recover`
+  - a strict TestVM
+  - **Tests:** Rust core 25, Actuary 10, pool 21; Solidity 28 (9 on a fork); SDK 6.
+  - **Mutation testing:** 13/13 planted pool bugs killed.
+  - **Float reference quote** (random markets, rates, fees): agrees to 1.08e-11.
+  - A second skeptic pass followed; see below.
+- **Skeptic pass 2 (2026-09-27; killed twice, by a machine restart and a rate limit, but its findings were saved as it went):**
+  - **CRITICAL, fixed:** a revival stayed on record. After a later real death, `restore` would pay the dead member's payout the whole revival reserve. Proved by the skeptic with a forge test and a pool test.
+    - Now every final death clears `revivedAt`, and `restore` needs the registry to say the member is alive.
+  - **HIGH, fixed:** an undone death was repaid in cash, so a staged report plus a revival let a paying member leave with their at-risk money. The repayment now goes back into the member's own account and is invested at the next settlement.
+  - **HIGH, fixed:** the attester key alone could take over any account at once. A recovery now waits 14 days, and one check-in with the current passkey cancels it.
+  - **HIGH, fixed:** the `mark_dead` guard against queueing a living member was untested; that mutation survived the whole suite. A new test covers it.
+  - **HIGH, fixed:** the site claimed the mortality tables are "sealed forever" while the live v1 Actuary has no seal. The claims now follow the chain's state.
+  - **MEDIUM, fixed:**
+    - Guardians could answer an honest death report and take the reporter's bond. Now only the member's own proof answers one.
+    - The bequest part was paid at 1/ä with no credits, so a "level" income dwindled. It now pays no income and stays invested for the family.
+    - A pause froze income indefinitely. It now holds runs and exits for at most 7 days, once in 30.
+    - Daily epochs shrank the detector's lag to 7 days. Epochs are now bounded to 28–31 days.
+    - Honest groups healthier than the tables were flagged. The detector was recalibrated to H0 0.85 against H1 0.55; the measured tables are in the README and spec.
+    - The v1 Actuary's quotes include no fee and use the old fit. The site now discloses this.
+    - The fit ignored later paying ages. Refit with ages 85, 90 and 95 at half weight:
+      - worst error from the start ages: 1.35% (was 1.13%);
+      - from 85: 1.30% (was 2.2%); from 90: 1.70% (was 4.7%); from 95: 3.74% (was 7.3%).
+      - A full-weight variant was measured and rejected: 1.68% at the start ages, 2.71% from 95.
+      - Still only the fit error against the UN tables it was fitted to; that is stated as such.
+    - The keeper made the stale revival automatic. It now prunes.
+  - **LOW, fixed:**
+    - A reporter could date the death at 0; the date is now clamped to the last own proof of life.
+    - The valuation rate range 0–6% contradicted "governance can't touch payouts". It is now 2–5% and disclosed.
+    - The live site allowed born-1946 inputs, uncapped amounts via the URL, and a plan with nothing paid in. All fixed.
+    - The "no gas" copy is now shown only when sponsorship is on.
+    - A fork test depended on the day's market. It is now deterministic, with a real-feed control.
+  - **Tests now:** Rust core 26, Actuary 10, pool 22. Solidity 32, including 4 new exploit regressions and 9 fork tests. SDK 6: recovery is now two steps, tested inside a chain snapshot.
+  - **Site re-judged after the round-2 fixes** (public URL, 2026-09-27 16:22 UTC):
+    - 20/20 random quotes equal a direct eth_call (p50 1.13 s, p95 2.17 s); 80/80 route loads; axe 0; passkey OK.
+    - Lighthouse mobile, on an idle machine:
+      - `/fil/checkin/0`: **95** / accessibility 100 (was 66 / 98). Blocking time 180 ms (was 2,480 ms). The chain client and wallet code now load on use.
+      - `/en`: **81** / accessibility 100 (was 69). Blocking time 550 ms. Largest paint 2.9 s on simulated slow 4G.
+    - What changed:
+      - the landing is now static; the country default comes from an edge cookie;
+      - the WebGL sky waits for the first touch on phones;
+      - the glass blur is gone;
+      - `Account` no longer drags the wallet code into every page.
+  - **found in review, fixed:** my own Sky change had pushed the hero a full screen down on phones. The judge couldn't see it (no overflow, no errors); an LCP probe did. Screenshots are now part of the check.
+  - `SUBMISSION.md` is generated from the run files. It claims "sealed" only once `deployment.json` records it.
+- **Skeptic pass 3 (2026-09-27, rate-limited mid-run; 15 findings saved to `runs/artifacts/skeptic3-findings.md`).** All are fixed or disclosed:
+  - **HIGH:** a revival repaid only the reserve (3.9% in a young pool) and erased the rest. The rest now stays owed (`FLAG_OWED`), and `restore` repeats as the reserve refills.
+  - **HIGH:** the 14-day recovery delay lost to a 90-day check-in schedule.
+    - The delay is now the challenge window (120 days), and income waits meanwhile.
+    - A request no longer counts as an identity proof (`lastRecoveryIssued`), so a stolen phone's victim can't reopen income to the thief.
+    - Disclosed: the thief with the unlocked phone can still veto recovery.
+  - **MEDIUM:**
+    - A false report paid the beneficiary. A reported death's estate and bequest are now held a year (`pay_estate`) and go back to a revived member.
+    - Revived before release, a member was released anyway. The release now re-reads the registry.
+    - The owner could re-pause forever. A pause while paused is a no-op, and there is a 30-day cooldown for everyone.
+    - A guardian-reliant member's death was backdated to her own last proof. It is now clamped to the guardians' last proof, and the limit is disclosed in the UI.
+    - "Identity checked once" was wrong. The copy now says renewed yearly, and the check-in page shows the renewal date and any hold.
+    - The detector claims were overstated. The README now gives the measured rates and the 3-year horizon.
+    - One hot key holds four roles. Disclosed, with a production split.
+    - Registry fixes were untested. `mutate_registry.py` now kills 15/15.
+  - **LOW, fixed:**
+    - duplicate guardians;
+    - a pending report surviving a presumption;
+    - stale README counts.
+  - Tests: registry 27, governance 3, pool 26 (Rust total 62, Solidity 39, SDK 6).
+  - Planted bugs: pool **26/26** and registry **15/15**, both baselines passing. One survivor mid-run (the estate paid to the payout address, whose test had moved to a held estate) got an assertion and a second mutation.
+  - Mainnet activation dry-runs: pool 53.3 KB (fee 0.000252 ETH), Actuary 34.8 KB (0.000168 ETH).
+  - Keeper bug caught before it ran: Stylus exports `estateOf` and `payEstate`, not snake case.
+  - Site redeployed and re-judged: 20/20 quotes, 80/80 routes, axe 0, passkey OK. The landing shows 41 of 41 planted bugs.
+- **Site judged on the public URL** (`web/scripts/judge.mjs` → `runs/judge.json`, 2026-09-27, https://tonti-life.vercel.app):
+  - **20/20 random quotes** typed into the live landing. For each one:
+    - the eth_call the browser sent, re-sent to the public node, returns the P50 on screen;
+    - the calldata encodes the inputs asked.
+    - Latency from click to answer: p50 1.35 s, p95 1.8 s.
+  - `/pool` odds: 480 qMonth reads, 2 multicalls at one block. 3/3 rows checked equal direct reads.
+  - 80/80 route × width (320, 375, 768, 1440) × language loads are clean.
+  - axe WCAG 2.2 AA: 0 violations on 20 pages.
+  - A life key is created with Chrome's virtual WebAuthn authenticator (rpId tonti-life.vercel.app).
+  - Landing JS: 146 KB gzipped.
+  - **found and fixed by the judge:**
+    - people born 2006–08 were offered a quote the Actuary can't price, and the error blamed the network;
+    - faded locked steps failed contrast;
+    - the 404 page had no `lang` and wasn't branded.
+  - **found in review:** the landing said the mortality tables are "sealed forever" while the live v1 Actuary has no seal. The claim is now stated as happening at launch until the pool is live.
+**Disclosed facades:** none in the product. One in the tooling, marked `facade-ok` in `engine/ink-meter/src/{host,main}.rs`, **awaiting Dave's OK**:
+- **What:** the gas meter answers the pool's calls to the Solidity Treasury, LifeRegistry and USDG with stand-ins.
+- **What they return:** plausible values (sale proceeds at oracle price less 0.1%, vault shares at 1.008, registry statuses).
+- **What they're charged:** the gas Foundry measured for those functions on the mainnet fork.
+- **What is real:** the meter executes the Stylus side for real, including the pool's calls into the Actuary.
+- **Why it can't all be real yet:** on a frozen fork the Chainlink feeds stop updating, and the Treasury refuses prices older than 96 h (a bound capped in code). A death needs a 14-day challenge window or 730 days of silence to finalise. So one month with deaths can't run the real Solidity end to end without faking a feed or a registry state.
+- **Could be narrowed:** executing the real Treasury, USDG and registry views on an anvil fork within the 96 h window.
+- **When it goes away:** on-chain `cast estimate` replaces all of it once deployed.
+**Scope:** only `arbit/`, `/media/dflame/UNIQ/arbit/` (data, runs, artifacts) and `/dev/shm/arbit-target` (Rust builds). Nothing else on Dave's machine.
