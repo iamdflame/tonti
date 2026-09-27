@@ -61,8 +61,9 @@ const RESERVE_MONTHS: i128 = 60;
 /// Exit fee, paid to the members who stay as a mortality credit (docs/protocol.md §7).
 const EXIT_FEE_BPS: u128 = 100;
 const DAY: u128 = 86_400;
-/// A matured exit notice must be used within 90 days; after that it lapses and a new one is needed.
-const EXIT_WINDOW: u128 = 90 * DAY;
+/// A matured exit notice must be used within 150 days (longer than a pending recovery or a death
+/// report's window, which hold exits); after that it lapses and a new one is needed.
+const EXIT_WINDOW: u128 = 150 * DAY;
 /// A pause holds settlements, rebalances and exits for at most this long, and the guardian can
 /// pause again only this long after the last pause began: no one key can freeze income.
 const PAUSE_MAX: u128 = 7 * DAY;
@@ -376,6 +377,12 @@ sol_storage! {
         /// A reported death's estate, held for `ESTATE_HOLD` from `m_estate_at`.
         mapping(uint256 => uint256) m_estate;
         mapping(uint256 => uint256) m_estate_at;
+        /// A reported death's income dated after the death: held with the estate, then credited to
+        /// the survivors, or returned to the member if she is revived (skeptic review 4).
+        mapping(uint256 => uint256) m_post;
+        /// A repayment for a member already in this month's deposit queue: invested next month,
+        /// never minted from this month's deposit (skeptic review 4).
+        mapping(uint256 => uint256) m_restored;
 
         // Ghost-member detector (docs/protocol.md §6): Wald's SPRT per group, group = country ×
         // birth decade. Each epoch's deaths and expected deaths accumulate during settlement.
@@ -869,7 +876,14 @@ impl TontiPool {
         let (et, pt) = self.split_income(t, tu, self.m_tsnap.get(m), died)?;
         let (eb, pb) = self.split_income(b, bu, self.m_bsnap.get(m), died)?;
         let estate = usdg_raw(Fx((et + eb) as i128));
-        run.unallocated += usdg_raw(Fx((pt + pb) as i128));
+        let post = usdg_raw(Fx((pt + pb) as i128));
+        if presumed {
+            run.unallocated += post; // income after the death: the survivors'
+        } else {
+            // A report can be false: its post-date income waits with the estate.
+            self.m_post.insert(m, self.m_post.get(m) + U256::from(post));
+            self.m_estate_at.insert(m, U256::from(self.now())); // every reported death restarts the hold
+        }
         // Waiting (uninvested) contributions go back to the estate as well.
         let pending = self.m_pending.get(m);
         if pending > U256::ZERO {
@@ -894,7 +908,9 @@ impl TontiPool {
             let x = mul_div(released, RESERVE_BPS, 10_000).unwrap_or(0);
             run.pool[a] -= x;
             reserve[a] += x;
-            self.m_owed.insert(U256::from(m) * U256::from(4u8) + U256::from(a), U256::from(released));
+            // Added to anything an earlier undone death still owes her, never written over it.
+            let key = U256::from(m) * U256::from(4u8) + U256::from(a);
+            self.m_owed.insert(key, self.m_owed.get(key) + U256::from(released));
         }
         set3(&mut self.reserve, &reserve);
         let mut cb = self.cohort_at(b)?;
@@ -1084,19 +1100,44 @@ impl TontiPool {
         ];
         let amount = if run.sale { usdg_raw(Self::part(run, engine(value(&left, &run.prices))?)?) } else { 0 };
         if flags & FLAG_RESTORED != 0 {
+            run.given += amount;
+            let registry = ILifeRegistry::new(self.registry.get());
+            let st = ext(registry.status(self.vm(), Call::new(), m))?;
+            if st == STATUS_DECEASED || st == STATUS_PRESUMED {
+                // She has really died since the restore was queued (skeptic review 4): she stays
+                // released, and the repayment is part of her estate.
+                self.m_flags.insert(m, U256::from(flags & !FLAG_RESTORED));
+                let presumed = ext(registry.reporter_of(self.vm(), Call::new(), m))? == Address::ZERO;
+                self.to_estate(m, U256::from(amount), presumed)?;
+                return Ok(());
+            }
+            if flags & FLAG_EXITED != 0 {
+                // She has left the pool: what the reserve still owed her is paid to her in cash.
+                let to = self.payout_of(m)?;
+                self.claimable.insert(to, self.claimable.get(to) + U256::from(amount));
+                self.m_flags.insert(m, U256::from(flags & !FLAG_RESTORED));
+                self.vm().log(Restored { memberId: m, to, usdg: U256::from(amount) });
+                return Ok(());
+            }
+            // Back into her own account, with the estate and post-date income her false death held.
+            let back = U256::from(amount) + self.m_estate.get(m) + self.m_post.get(m);
+            self.m_estate.insert(m, U256::ZERO);
+            self.m_post.insert(m, U256::ZERO);
             let mut f = flags & !(FLAG_RESTORED | FLAG_RELEASED | FLAG_QUEUED_DEAD | FLAG_PRESUMED);
-            if amount > 0 {
-                self.m_pending.insert(m, self.m_pending.get(m) + U256::from(amount));
-                self.restored_total.set(self.restored_total.get() + U256::from(amount));
-                run.given += amount;
-                if f & FLAG_QUEUED_DEPOSIT == 0 {
+            if back > U256::ZERO {
+                self.restored_total.set(self.restored_total.get() + back);
+                if f & FLAG_QUEUED_DEPOSIT != 0 {
+                    // Already in this month's deposit queue: kept apart, invested next month.
+                    self.m_restored.insert(m, self.m_restored.get(m) + back);
+                } else {
+                    self.m_pending.insert(m, self.m_pending.get(m) + back);
                     f |= FLAG_QUEUED_DEPOSIT;
                     self.pending_members.push(m);
                 }
             }
             self.m_flags.insert(m, U256::from(f));
             let to = self.vm().contract_address();
-            self.vm().log(Restored { memberId: m, to, usdg: U256::from(amount) });
+            self.vm().log(Restored { memberId: m, to, usdg: back });
             return Ok(());
         }
         if amount > 0 {
@@ -1156,6 +1197,21 @@ impl TontiPool {
     /// Mints one waiting member's units at the frozen NAV, split by their bequest share.
     fn mint_one(&mut self, i: u64, run: &Run) -> Result<(), PoolError> {
         let m = self.pending_members.get(i as usize).unwrap_or_default();
+        self.mint_units(m, run)?;
+        // A repayment that arrived while she was queued this month waits for next month's deposit
+        // (this month's `invested` never included it).
+        let r = self.m_restored.get(m);
+        if r > U256::ZERO {
+            self.m_restored.insert(m, U256::ZERO);
+            self.m_pending.insert(m, self.m_pending.get(m) + r);
+            let f = self.m_flags.get(m).to::<u64>();
+            self.m_flags.insert(m, U256::from(f | FLAG_QUEUED_DEPOSIT));
+            self.pending_members.push(m);
+        }
+        Ok(())
+    }
+
+    fn mint_units(&mut self, m: U256, run: &Run) -> Result<(), PoolError> {
         let amount = u128_of(self.m_pending.get(m))?;
         if amount == 0 || run.invested == 0 {
             return Ok(());
@@ -1365,6 +1421,11 @@ impl TontiPool {
         if !ext(registry.identified(self.vm(), Call::new(), member_id))? {
             return Err(PoolError::NotEligible(NotEligible {}));
         }
+        // Nor for a member the registry says has died, even before the pool has released her.
+        let s = ext(registry.status(self.vm(), Call::new(), member_id))?;
+        if s == STATUS_DECEASED || s == STATUS_PRESUMED {
+            return Err(PoolError::NotEligible(NotEligible {}));
+        }
         let total = self.m_contributed.get(member_id) + amount;
         if total > self.member_cap.get() {
             return Err(PoolError::CapExceeded(CapExceeded {}));
@@ -1556,7 +1617,7 @@ impl TontiPool {
             return Err(PoolError::Busy(Busy {}));
         }
         let usdg = self.m_estate.get(member_id);
-        if usdg == U256::ZERO {
+        if usdg == U256::ZERO && self.m_post.get(member_id) == U256::ZERO {
             return Err(PoolError::BadInput(BadInput {}));
         }
         let registry = ILifeRegistry::new(self.registry.get());
@@ -1568,12 +1629,15 @@ impl TontiPool {
             let heir = self.beneficiary_of(member_id)?;
             self.claimable.insert(heir, self.claimable.get(heir) + usdg);
             self.vm().log(EstatePaid { memberId: member_id, to: heir, usdg });
+            // Her income after the date of death: the survivors', credited at the next settlement.
+            self.unallocated_usdg.set(self.unallocated_usdg.get() + self.m_post.get(member_id));
         } else {
             let flags = self.m_flags.get(member_id).to::<u64>();
             if flags & FLAG_RELEASED != 0 {
                 return Err(PoolError::NotEligible(NotEligible {})); // restore first
             }
             // Revived: invested back into their own account at the next settlement.
+            let usdg = usdg + self.m_post.get(member_id);
             self.m_pending.insert(member_id, self.m_pending.get(member_id) + usdg);
             self.pending_total.set(self.pending_total.get() + usdg);
             if flags & FLAG_QUEUED_DEPOSIT == 0 {
@@ -1584,12 +1648,14 @@ impl TontiPool {
             self.vm().log(Restored { memberId: member_id, to, usdg });
         }
         self.m_estate.insert(member_id, U256::ZERO);
+        self.m_post.insert(member_id, U256::ZERO);
         Ok(())
     }
 
-    /// A reported death's estate still held (USDG), and when the hold began.
-    pub fn estate_of(&self, member_id: U256) -> (U256, U256) {
-        (self.m_estate.get(member_id), self.m_estate_at.get(member_id))
+    /// A reported death's estate still held (USDG), when the hold began, and the income dated
+    /// after the death held with it (USDG).
+    pub fn estate_of(&self, member_id: U256) -> (U256, U256, U256) {
+        (self.m_estate.get(member_id), self.m_estate_at.get(member_id), self.m_post.get(member_id))
     }
 
     /// The revival reserve's shares, per sleeve.
@@ -2046,6 +2112,8 @@ mod tests {
         }
         .abi_encode();
         vm.mock_call(REGISTRY, enroll, U256::ZERO, Ok(Vec::new()));
+        // Alive (Active) unless a test says otherwise: deposits check it.
+        vm.mock_static_call(REGISTRY, Abi::statusCall { memberId: U256::from(id) }.abi_encode(), Ok(U256::from(1u8).abi_encode()));
         // The registry keeps the payout and beneficiary addresses; the pool reads them there.
         vm.mock_static_call(REGISTRY, Abi::payoutOfCall { memberId: U256::from(id) }.abi_encode(), Ok(payout.abi_encode()));
         vm.mock_static_call(REGISTRY, Abi::beneficiaryOfCall { memberId: U256::from(id) }.abi_encode(), Ok(HEIR.abi_encode()));
@@ -2356,7 +2424,7 @@ mod tests {
         assert!(flags.to::<u64>() & FLAG_RELEASED != 0);
         // A reported death's estate is held for a year (skeptic review 3: a false report must not
         // pay the family either), then paid to the beneficiary if she is still dead.
-        let (heir, since) = pool.estate_of(ana);
+        let (heir, since, _) = pool.estate_of(ana);
         let heir = heir.to::<u128>();
         assert!(heir > 4_980_000 && heir <= 5_000_000, "heir is owed ~5 USDG, got {heir}");
         assert_eq!(pool.claimable_of(HEIR), U256::ZERO, "held, not paid yet");
@@ -2905,7 +2973,8 @@ mod tests {
         assert!(flags & FLAG_RELEASED != 0 && flags & FLAG_PRESUMED == 0, "released as a reported death");
         // Her unclaimed month-1 income, earned before she died, is her estate: it is held for her
         // beneficiary (a year, for a reported death), not paid to her own wallet.
-        let estate = pool.estate_of(aunt).0.to::<u128>();
+        let (estate, _, post) = pool.estate_of(aunt);
+        let (estate, post) = (estate.to::<u128>(), post.to::<u128>());
         assert!(estate > 0, "the estate is held for the beneficiary");
         assert_eq!(pool.claimable_of(HEIR), U256::ZERO, "not paid while a revival is possible");
         assert_eq!(pool.claimable_of(AUNT), U256::ZERO, "and nothing to her payout address");
@@ -2935,17 +3004,18 @@ mod tests {
         // repayment goes back into her own account instead.
         assert_eq!(pool.claimable_of(AUNT).to::<u128>(), before, "nothing leaves the pool");
         let (_, _, tu, _, pending, _, flags) = pool.member(aunt);
-        assert_eq!((tu, pending.to::<u128>()), (U256::ZERO, expected), "the reserve's shares at the sale price, waiting to be invested for her");
-        assert_eq!(pool.pending_total.get().to::<u128>(), expected);
+        // With them, what her false death held: her estate and the income dated after it (skeptic 4).
+        assert_eq!((tu, pending.to::<u128>()), (U256::ZERO, expected + estate + post), "the reserve's shares at the sale price, and her held estate, waiting to be invested for her");
+        assert_eq!(pool.pending_total.get().to::<u128>(), expected + estate + post);
         let flags = flags.to::<u64>();
         assert!(flags & (FLAG_RELEASED | FLAG_RESTORED | FLAG_QUEUED_DEAD) == 0 && flags & FLAG_QUEUED_DEPOSIT != 0, "a member again, deposit queued");
         // The reserve covered only part of her release: the rest stays owed for a later restore.
         assert!(flags & FLAG_OWED != 0 && pool.m_owed.get(aunt * U256::from(4u8)) > U256::ZERO, "the rest is still owed");
-        // Her held estate goes back to her too: the false report paid her family nothing.
-        pool.pay_estate(aunt).unwrap();
+        // The false report paid her family nothing, and nothing is left held.
         assert_eq!(pool.claimable_of(HEIR), U256::ZERO);
-        assert_eq!(pool.member(aunt).4.to::<u128>(), expected + estate, "reserve repayment and estate, both hers");
-        let expected = expected + estate;
+        assert_eq!(pool.estate_of(aunt), (U256::ZERO, pool.estate_of(aunt).1, U256::ZERO));
+        assert!(matches!(pool.pay_estate(aunt), Err(PoolError::BadInput(_))));
+        let expected = expected + estate + post;
 
         // Month 4: invested back. She holds units in her cohort again, and is paid from them.
         let t4 = t3 + (YEAR_SECONDS / 12) as u64;
@@ -3040,6 +3110,9 @@ mod tests {
                 }
                 if sel == Abi::canReceiveIncomeCall::SELECTOR || sel == Abi::identifiedCall::SELECTOR {
                     return Some(Ok(true.abi_encode()));
+                }
+                if sel == Abi::statusCall::SELECTOR {
+                    return Some(Ok(U256::from(1u8).abi_encode())); // Active, unless a test mocks otherwise
                 }
                 if sel == Abi::lastStrongCall::SELECTOR {
                     return Some(Ok(U256::from(T0).abi_encode()));
@@ -3157,7 +3230,7 @@ mod tests {
     /// A notice must be used within 90 days of maturing, and never after income has started
     /// (skeptic, test `a_stale_notice_lets_a_paying_member_exit_whenever_they_like`).
     #[test]
-    fn an_exit_notice_lapses_after_90_days_and_never_outlives_the_start_of_income() {
+    fn an_exit_notice_lapses_after_150_days_and_never_outlives_the_start_of_income() {
         let (vm, mut pool) = setup();
         let can = |vm: &TestVM, id: u64| vm.mock_static_call(REGISTRY, Abi::canReceiveIncomeCall { memberId: U256::from(id) }.abi_encode(), Ok(true.abi_encode()));
         // Two savers born 1980, income from 50 (they are about 46 now).
@@ -3169,8 +3242,8 @@ mod tests {
         can(&vm, 1);
         vm.set_sender(MARIA);
         let at = pool.request_exit(early).unwrap().to::<u64>();
-        // 91 days after it matured the notice has lapsed; she must cancel and give notice again.
-        vm.set_block_timestamp(at + 91 * 86_400);
+        // 151 days after it matured the notice has lapsed; she must cancel and give notice again.
+        vm.set_block_timestamp(at + 151 * 86_400);
         assert!(matches!(pool.exit(early), Err(PoolError::NotEligible(_))));
         pool.cancel_exit(early).unwrap();
         let again = pool.request_exit(early).unwrap().to::<u64>();
@@ -3444,7 +3517,8 @@ mod tests {
         assert!(flags & FLAG_OWED != 0 && flags & FLAG_RELEASED == 0, "a member again, still owed");
         let left = pool.m_owed.get(a * U256::from(4u8)).to::<u128>();
         assert!(left > 0 && left < released, "part repaid, the rest owed: {left} of {released}");
-        pool.pay_estate(a).unwrap();
+        // Her held estate came back with the restore: the false report paid her family nothing.
+        assert_eq!(pool.estate_of(a).0, U256::ZERO);
         assert_eq!(pool.claimable_of(HEIR_A), U256::ZERO, "the false report paid her family nothing");
         // The reserve refills (later deaths; ample here, since it first pays survivors its monthly
         // 1/60); the next restore repays the rest.
