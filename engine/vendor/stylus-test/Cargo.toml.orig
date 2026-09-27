@@ -1,0 +1,28 @@
+[package]
+name = "stylus-test"
+keywords = ["arbitrum", "ethereum", "stylus", "alloy"]
+description = "Testing utilities for Arbitrum Stylus contracts"
+
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[dependencies]
+alloy-primitives.workspace = true
+alloy-sol-types.workspace = true
+stylus-core.workspace = true
+tokio = { version = "1.12.0", features = ["full"] }
+alloy-provider = "1.7.3"
+url = "2.5.4"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+alloy-primitives = { workspace = true, features = ["native-keccak"] }
+
+[dev-dependencies]
+
+[features]
+default = []
+# Deprecated: see stylus-sdk Cargo.toml for details.
+reentrant = []
