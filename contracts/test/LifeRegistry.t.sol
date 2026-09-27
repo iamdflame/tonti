@@ -307,6 +307,11 @@ contract LifeRegistryTest is Test {
         assertTrue(reg.canReceiveIncome(MEMBER));
         vm.expectRevert(bytes("strong"));
         reg.setStrongPeriod(30 days);
+        // Skeptic 4: shortening it would hold income of, and presume dead, members who renew
+        // yearly. It can only be lengthened.
+        vm.expectRevert(bytes("strong"));
+        reg.setStrongPeriod(399 days);
+        reg.setStrongPeriod(500 days);
     }
 
     function test_passkeyGhostsArePresumedWhenIdentityProofsLapseAndTheLivingCanRevive() public {
@@ -522,11 +527,81 @@ contract LifeRegistryTest is Test {
         reg.resolveReport(MEMBER);
     }
 
+    /// Skeptic 4: a member who relies on guardians never checks in herself, so only her payout
+    /// address (her family's wallet) can stop a misused identity statement. Nobody else can.
+    function test_thePayoutAddressCanCancelARecoveryAndNobodyElse() public {
+        vm.warp(block.timestamp + 1 days); // statements must be newer than set-up's
+        _requestRecovery(makeAddr("thief"), 0xBAD);
+        vm.prank(g1);
+        vm.expectRevert(LifeRegistry.Unauthorized.selector);
+        reg.cancelRecovery(MEMBER);
+        vm.prank(payoutAddr);
+        reg.cancelRecovery(MEMBER);
+        vm.warp(block.timestamp + reg.challengeWindow() + 1);
+        vm.expectRevert(bytes("none"));
+        reg.finishRecovery(MEMBER);
+    }
+
+    /// Skeptic 4: a newer request must wait its own window, not inherit the first one's.
+    function test_aNewRecoveryRequestRestartsTheWindow() public {
+        vm.warp(block.timestamp + 1 days); // statements must be newer than set-up's
+        _requestRecovery(makeAddr("first"), 0xBAD);
+        vm.warp(block.timestamp + 60 days);
+        uint64 at = _requestRecovery(makeAddr("second"), 0xC0FFEE);
+        assertEq(_readyAt(), at + reg.challengeWindow());
+    }
+
+    /// Skeptic 4: once applied, a recovery is the member's own proof of life (it can answer a
+    /// report), and the pending one is gone.
+    function test_anAppliedRecoveryIsHerOwnProofOfLife() public {
+        vm.warp(block.timestamp + 1 days); // statements must be newer than set-up's
+        (uint256 qx, uint256 qy) = vm.publicKeyP256(0xC0FFEE);
+        _recover(makeAddr("new wallet"), bytes32(qx), bytes32(qy));
+        assertEq(reg.lastOwnProof(MEMBER), block.timestamp);
+        assertEq(_readyAt(), 0);
+    }
+
+    /// Skeptic 4: a member whose identity lapsed and who asked for a recovery was presumed dead,
+    /// dated two years back, while the recovery waited. Not on that path any more.
+    function test_aMemberMidRecoveryIsNotPresumedForALapsedIdentity() public {
+        for (uint256 i; i < 10; i++) {
+            vm.warp(block.timestamp + 80 days);
+            reg.checkIn(MEMBER, _assertion(reg.challenge(MEMBER), PASSKEY)); // alive, checking in
+        }
+        _requestRecovery(makeAddr("new wallet"), 0xC0FFEE); // day 800: identity 800 days old
+        vm.warp(block.timestamp + 10 days);
+        vm.expectRevert(bytes("not lapsed long enough"));
+        reg.presumeDeceased(MEMBER);
+    }
+
+    /// Skeptic 4 (a surviving mutation): after two years of complete silence she is presumed dead
+    /// even with a recovery pending, and the recovery goes with her; and a presumption, like a
+    /// revival, leaves no reporter on record.
+    function test_aSilentPresumptionClearsAPendingRecoveryAndAnyReporter() public {
+        vm.prank(reporter);
+        reg.reportDeath(MEMBER, uint64(block.timestamp), keccak256("forged certificate"));
+        vm.warp(block.timestamp + 120 days);
+        reg.resolveReport(MEMBER);
+        assertEq(reg.reporterOf(MEMBER), reporter);
+        vm.warp(block.timestamp + 1 days);
+        reg.revive(MEMBER, address(idv), _attest(MEMBER, KEY, IDENTIFY, ATTESTER));
+        assertEq(reg.reporterOf(MEMBER), address(0), "revived: no reporter on record");
+        vm.warp(block.timestamp + 700 days);
+        _requestRecovery(makeAddr("new wallet"), 0xC0FFEE);
+        vm.warp(block.timestamp + 31 days);
+        reg.presumeDeceased(MEMBER);
+        assertEq(_readyAt(), 0, "the pending recovery goes with the presumption");
+        assertEq(reg.reporterOf(MEMBER), address(0));
+    }
+
     /// Skeptic 3: one address listed three times counted as 2 of 3 guardians.
     function test_guardiansMustBeDifferentPeople() public {
         vm.prank(payoutAddr);
         vm.expectRevert(bytes("guardians"));
         reg.setGuardians(MEMBER, [g1, g1, g2]);
+        vm.prank(payoutAddr);
+        vm.expectRevert(bytes("guardians"));
+        reg.setGuardians(MEMBER, [g1, g2, g1]); // not only neighbours (skeptic 4)
         vm.prank(payoutAddr);
         reg.setGuardians(MEMBER, [g1, address(0), address(0)]); // empty slots are fine
     }

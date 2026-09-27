@@ -167,6 +167,17 @@ contract TreasuryForkTest is Test {
         treasury.buy(1, 1_000e6);
     }
 
+    /// Skeptic 4: a 1-hour staleness limit or a 0% slippage bound would make every settlement's sale
+    /// revert and stop income. Governance can't set either.
+    function test_boundsThatWouldStopSettlementAreRefused() public {
+        vm.expectRevert(bytes("bounds"));
+        treasury.setMaxStaleness(25 hours);
+        vm.expectRevert(bytes("bounds"));
+        treasury.setMaxSlippageBps(29);
+        treasury.setMaxStaleness(26 hours);
+        treasury.setMaxSlippageBps(30);
+    }
+
     function test_onlyLedgerMovesFunds() public {
         vm.expectRevert(Treasury.Unauthorized.selector);
         treasury.buy(2, 1e6);
