@@ -118,13 +118,24 @@ const out = { base: BASE, at: new Date().toISOString(), quotes: [], routes: [], 
   const ISO2 = { PHL: 'PH', IDN: 'ID', IND: 'IN', BGD: 'BD', MMR: 'MM', LKA: 'LK', NPL: 'NP', VNM: 'VN', THA: 'TH', MYS: 'MY', CHN: 'CN', SGP: 'SG' };
   const { actuary } = JSON.parse(readFileSync(new URL('../src/sdk/deployment.json', import.meta.url), 'utf8'));
   const checks = [];
+  let stateAt = 'the page block';
   for (const iso of ['PHL', 'SGP', 'BGD']) {
     const want = [];
     for (const male of [0, 1]) {
       let alive = 1;
       for (let a = 65; a < 85; a++) {
         const data = (await import('viem')).encodeFunctionData({ abi, functionName: 'qMonth', args: [BigInt((ISO[iso] * 2 + male) * 10_000 + born), BigInt(a * 2 + 1) * 5n * 10n ** 17n, BigInt(born + a + 1) * 10n ** 18n] });
-        const q = Number(BigInt(await rpc('eth_call', [{ to: actuary, data }, `0x${block.toString(16)}`]))) / 1e18;
+        // At the page's block when the node still has it; qMonth reads only mortality, which never
+        // changes, so a pruned block falls back to the latest (noted in the output).
+        let raw;
+        try {
+          raw = await rpc('eth_call', [{ to: actuary, data }, `0x${block.toString(16)}`]);
+        } catch (e) {
+          if (!/historical state|missing trie node|pruned/i.test(String(e.message))) throw e;
+          stateAt = 'latest (the page block was pruned by the public node)';
+          raw = await rpc('eth_call', [{ to: actuary, data }, 'latest']);
+        }
+        const q = Number(BigInt(raw)) / 1e18;
         alive *= (1 - q) ** 12;
       }
       want.push(`${Math.round(alive * 100)}%`);
@@ -133,7 +144,7 @@ const out = { base: BASE, at: new Date().toISOString(), quotes: [], routes: [], 
     const shown = rows.find((r) => r.startsWith(`${name}:`));
     checks.push({ iso, shown, want: `${name}: women ${want[0]}, men ${want[1]}`, same: shown === `${name}: women ${want[0]}, men ${want[1]}` });
   }
-  out.odds = { block: String(block), rows: rows.length, checks };
+  out.odds = { block: String(block), rows: rows.length, checks, stateAt };
   console.log('pool odds', JSON.stringify(out.odds));
   await ctx.close();
 }
