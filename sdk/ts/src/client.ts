@@ -54,6 +54,8 @@ export const FLAGS = {
   presumed: 128n,
   queuedRestore: 256n,
   restored: 512n,
+  /** Revived and still owed part of the release; repaid as the revival reserve refills. */
+  owed: 1024n,
 } as const;
 export const STATUS = ['none', 'active', 'due', 'lapsed', 'deathReported', 'deceased', 'presumedDeceased'] as const;
 export type Status = (typeof STATUS)[number];
@@ -195,10 +197,10 @@ export function tonti(client: PublicClient, addresses: Addresses, wallet?: Walle
     },
 
     /** Income owed now, dollars. */
-    /** A reported death's estate still held (dollars), and when the year-long hold began. */
-    async estate(memberId: bigint): Promise<{ usdg: number; since: Date | null }> {
-      const [usdg, since] = await client.readContract({ ...pool, functionName: 'estateOf', args: [memberId] });
-      return { usdg: fromUsdg(usdg), since: since ? new Date(Number(since) * 1000) : null };
+    /** A reported death's estate and post-death income still held (dollars), and when the year-long hold began. */
+    async estate(memberId: bigint): Promise<{ usdg: number; postDeathIncome: number; since: Date | null }> {
+      const [usdg, since, post] = await client.readContract({ ...pool, functionName: 'estateOf', args: [memberId] });
+      return { usdg: fromUsdg(usdg), postDeathIncome: fromUsdg(post), since: since ? new Date(Number(since) * 1000) : null };
     },
 
     async owed(memberId: bigint): Promise<number> {

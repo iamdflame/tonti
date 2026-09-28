@@ -41,7 +41,7 @@ interface ITontiPool {
 
     function payEstate(uint256 member_id) external;
 
-    function estateOf(uint256 member_id) external view returns (uint256, uint256);
+    function estateOf(uint256 member_id) external view returns (uint256, uint256, uint256);
 
     function revivalReserve() external view returns (uint256, uint256, uint256);
 

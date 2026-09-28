@@ -139,6 +139,19 @@
  },
  {
   "type": "function",
+  "name": "cancelRecovery",
+  "inputs": [
+   {
+    "name": "memberId",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
   "name": "challenge",
   "inputs": [
    {
