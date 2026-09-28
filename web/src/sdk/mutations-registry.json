@@ -1,6 +1,6 @@
 {
- "killed": 15,
- "total": 15,
+ "killed": 23,
+ "total": 23,
  "baseline_passes": true,
  "results": [
   {
@@ -8,154 +8,235 @@
    "bug": "a final reported death leaves an earlier revival on record",
    "outcome": "killed",
    "failing": [
-    "[FAIL: no stale revival to repay a real death: 1800914400 != 0] test_aLaterDeathClearsAnEarlierRevival() (gas: 500221)",
-    "[FAIL: no stale revival to repay a real death: 1800914400 != 0] test_aLaterDeathClearsAnEarlierRevival() (gas: 500221)"
+    "[FAIL: no stale revival to repay a real death: 1800914400 != 0] test_aLaterDeathClearsAnEarlierRevival() (gas: 520603)",
+    "[FAIL: no stale revival to repay a real death: 1800914400 != 0] test_aLaterDeathClearsAnEarlierRevival() (gas: 520603)"
    ],
-   "seconds": 6.6
+   "seconds": 39.4
   },
   {
    "mutation": "presume-keeps-revival",
    "bug": "a presumption leaves an earlier revival on record",
    "outcome": "killed",
    "failing": [
-    "[FAIL: no stale revival: 1853704800 != 0] test_aPresumptionClearsAnEarlierRevivalAndClosesAnOpenReport() (gas: 265977)",
-    "[FAIL: no stale revival: 1853704800 != 0] test_aPresumptionClearsAnEarlierRevivalAndClosesAnOpenReport() (gas: 265977)"
+    "[FAIL: no stale revival: 1853704800 != 0] test_aPresumptionClearsAnEarlierRevivalAndClosesAnOpenReport() (gas: 268973)",
+    "[FAIL: no stale revival: 1853704800 != 0] test_aPresumptionClearsAnEarlierRevivalAndClosesAnOpenReport() (gas: 268973)"
    ],
-   "seconds": 6.9
+   "seconds": 37.1
   },
   {
    "mutation": "report-keeps-recovery",
    "bug": "a final reported death leaves a pending recovery in place",
    "outcome": "killed",
    "failing": [
-    "[FAIL: the death cancels the recovery: 1801778400 != 0] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 579604)",
-    "[FAIL: the death cancels the recovery: 1801778400 != 0] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 579604)"
+    "[FAIL: the death cancels the recovery: 1801778400 != 0] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 579671)",
+    "[FAIL: the death cancels the recovery: 1801778400 != 0] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 579671)"
    ],
-   "seconds": 11.2
+   "seconds": 19.6
   },
   {
    "mutation": "recovery-delay-short",
    "bug": "a recovery waits 14 days, less than a check-in period",
    "outcome": "killed",
    "failing": [
-    "[FAIL: the whole challenge window: 1798668000 != 1807826400] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 463039)",
-    "[FAIL: the whole challenge window: 1798668000 != 1807826400] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 463039)"
+    "[FAIL: the whole challenge window: 1798668000 != 1807826400] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 463024)",
+    "[FAIL: assertion failed: 1796940000 != 1806098400] test_aNewRecoveryRequestRestartsTheWindow() (gas: 198062)",
+    "[FAIL: the whole challenge window: 1798668000 != 1807826400] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 463024)"
    ],
-   "seconds": 10.8
+   "seconds": 12.8
   },
   {
    "mutation": "checkin-no-cancel",
    "bug": "a check-in doesn't cancel a pending recovery",
    "outcome": "killed",
    "failing": [
-    "[FAIL: assertion failed] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 752006)",
-    "[FAIL: next call did not revert as expected] test_anIdentityStatementAloneCannotTakeALivingMembersAccount() (gas: 482896)",
-    "[FAIL: assertion failed] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 752006)"
+    "[FAIL: assertion failed] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 751973)",
+    "[FAIL: next call did not revert as expected] test_anIdentityStatementAloneCannotTakeALivingMembersAccount() (gas: 483012)",
+    "[FAIL: assertion failed] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 751973)"
    ],
-   "seconds": 6.9
+   "seconds": 13.9
   },
   {
    "mutation": "recovery-request-is-proof",
    "bug": "a recovery request counts as an identity proof, cancelled or not",
    "outcome": "killed",
    "failing": [
-    "[FAIL: a request is not a proof: 1826748000 != 1790460000] test_aCancelledRecoveryIsNotAnIdentityProof() (gas: 470598)",
-    "[FAIL: a request is not a proof: 1826748000 != 1790460000] test_aCancelledRecoveryIsNotAnIdentityProof() (gas: 470598)"
+    "[FAIL: a request is not a proof: 1826748000 != 1790460000] test_aCancelledRecoveryIsNotAnIdentityProof() (gas: 470664)",
+    "[FAIL: a request is not a proof: 1826748000 != 1790460000] test_aCancelledRecoveryIsNotAnIdentityProof() (gas: 470664)"
    ],
-   "seconds": 7.2
+   "seconds": 13.3
   },
   {
    "mutation": "recovery-request-answers-reports",
    "bug": "a recovery request (an attester statement alone) answers a death report",
    "outcome": "killed",
    "failing": [
-    "[FAIL: a request is not her proof of life: 3 != 5] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 490232)",
-    "[FAIL: a request is not her proof of life: 3 != 5] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 490232)"
+    "[FAIL: a request is not her proof of life: 3 != 5] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 490299)",
+    "[FAIL: a request is not her proof of life: 3 != 5] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 490299)"
    ],
-   "seconds": 6.8
+   "seconds": 17.0
   },
   {
    "mutation": "income-during-recovery",
    "bug": "income keeps flowing while a recovery is pending",
    "outcome": "killed",
    "failing": [
-    "[FAIL: income waits while a recovery is pending] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 475053)",
-    "[FAIL: income waits while a recovery is pending] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 475053)"
+    "[FAIL: income waits while a recovery is pending] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 475018)",
+    "[FAIL: income waits while a recovery is pending] test_aMemberOnHerUsualScheduleAlwaysCancelsARecoveryInTime() (gas: 475018)"
    ],
-   "seconds": 6.8
+   "seconds": 17.6
   },
   {
    "mutation": "statement-cannot-answer",
    "bug": "an identity statement doesn't answer a death report",
    "outcome": "killed",
    "failing": [
-    "[FAIL: window open] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 181877)",
-    "[FAIL: window open] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 181877)"
+    "[FAIL: window open] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 181987)",
+    "[FAIL: window open] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 181987)"
    ],
-   "seconds": 6.6
+   "seconds": 13.6
   },
   {
    "mutation": "guardians-answer-reports",
    "bug": "guardian attestations answer a death report",
    "outcome": "killed",
    "failing": [
-    "[FAIL: next call did not revert as expected] test_guardiansCannotAnswerADeathReport() (gas: 249462)",
-    "[FAIL: next call did not revert as expected] test_guardiansCannotAnswerADeathReport() (gas: 249462)"
+    "[FAIL: next call did not revert as expected] test_guardiansCannotAnswerADeathReport() (gas: 249550)",
+    "[FAIL: next call did not revert as expected] test_guardiansCannotAnswerADeathReport() (gas: 249550)"
    ],
-   "seconds": 7.3
+   "seconds": 14.3
   },
   {
    "mutation": "date-unclamped",
    "bug": "a reporter may date the death before the last proof of life",
    "outcome": "killed",
    "failing": [
-    "[FAIL: assertion failed: 0 != 1799100000] test_aGuardianReliantMembersDeathIsDatedAtHerGuardiansLastProof() (gas: 315728)",
-    "[FAIL: assertion failed: 0 != 1792188000] test_aReportCannotDateTheDeathBeforeTheLastProofOfLife() (gas: 521903)",
-    "[FAIL: assertion failed: 0 != 1799100000] test_aGuardianReliantMembersDeathIsDatedAtHerGuardiansLastProof() (gas: 315728)"
+    "[FAIL: assertion failed: 0 != 1799100000] test_aGuardianReliantMembersDeathIsDatedAtHerGuardiansLastProof() (gas: 315816)",
+    "[FAIL: assertion failed: 0 != 1792188000] test_aReportCannotDateTheDeathBeforeTheLastProofOfLife() (gas: 521946)",
+    "[FAIL: assertion failed: 0 != 1799100000] test_aGuardianReliantMembersDeathIsDatedAtHerGuardiansLastProof() (gas: 315816)"
    ],
-   "seconds": 7.0
+   "seconds": 20.0
   },
   {
    "mutation": "duplicate-guardians",
    "bug": "one address may fill several guardian slots",
    "outcome": "killed",
    "failing": [
-    "[FAIL: next call did not revert as expected] test_guardiansMustBeDifferentPeople() (gas: 42385)",
-    "[FAIL: next call did not revert as expected] test_guardiansMustBeDifferentPeople() (gas: 42385)"
+    "[FAIL: next call did not revert as expected] test_guardiansMustBeDifferentPeople() (gas: 42363)",
+    "[FAIL: next call did not revert as expected] test_guardiansMustBeDifferentPeople() (gas: 42363)"
    ],
-   "seconds": 7.7
+   "seconds": 14.9
   },
   {
    "mutation": "presume-keeps-report",
    "bug": "a presumption leaves an open report (and its bond) in place",
    "outcome": "killed",
    "failing": [
-    "[FAIL: the open report's bond is returned: 90000000 != 100000000] test_aPresumptionClearsAnEarlierRevivalAndClosesAnOpenReport() (gas: 267277)",
-    "[FAIL: the open report's bond is returned: 90000000 != 100000000] test_aPresumptionClearsAnEarlierRevivalAndClosesAnOpenReport() (gas: 267277)"
+    "[FAIL: the open report's bond is returned: 90000000 != 100000000] test_aPresumptionClearsAnEarlierRevivalAndClosesAnOpenReport() (gas: 270273)",
+    "[FAIL: the open report's bond is returned: 90000000 != 100000000] test_aPresumptionClearsAnEarlierRevivalAndClosesAnOpenReport() (gas: 270273)"
    ],
-   "seconds": 7.8
+   "seconds": 13.4
   },
   {
    "mutation": "revive-from-stale-statement",
    "bug": "a revival accepts a statement issued before the death became final",
    "outcome": "killed",
    "failing": [
-    "[FAIL: next call did not revert as expected] test_aFinalReportedDeathCanBeUndoneAndTheBondGoesToTheMember() (gas: 342306)",
-    "[FAIL: next call did not revert as expected] test_aFinalReportedDeathCanBeUndoneAndTheBondGoesToTheMember() (gas: 342306)"
+    "[FAIL: next call did not revert as expected] test_aFinalReportedDeathCanBeUndoneAndTheBondGoesToTheMember() (gas: 342678)",
+    "[FAIL: next call did not revert as expected] test_aFinalReportedDeathCanBeUndoneAndTheBondGoesToTheMember() (gas: 342678)"
    ],
-   "seconds": 7.8
+   "seconds": 15.5
   },
   {
    "mutation": "report-bond-to-reporter",
    "bug": "a rejected report's bond goes back to the reporter, not the member",
    "outcome": "killed",
    "failing": [
-    "[FAIL: and the attacker's bond is hers: 0 != 10000000] test_aMemberOnScheduleAnswersAReportWithoutKnowingOfIt() (gas: 723607)",
-    "[FAIL: answered by her identity proof: 0 != 10000000] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 194399)",
-    "[FAIL: bond paid to the member: 0 != 10000000] test_falseDeathReportIsDefeatedAndBondGoesToMember() (gas: 451567)"
+    "[FAIL: and the attacker's bond is hers: 0 != 10000000] test_aMemberOnScheduleAnswersAReportWithoutKnowingOfIt() (gas: 723694)",
+    "[FAIL: answered by her identity proof: 0 != 10000000] test_anIdentityStatementAnswersAReportARecoveryRequestDoesNot() (gas: 194509)",
+    "[FAIL: bond paid to the member: 0 != 10000000] test_falseDeathReportIsDefeatedAndBondGoesToMember() (gas: 451565)"
    ],
-   "seconds": 7.8
+   "seconds": 14.7
+  },
+  {
+   "mutation": "presume-keeps-recovery",
+   "bug": "a presumption leaves a pending recovery in place",
+   "outcome": "killed",
+   "failing": [
+    "[FAIL: the pending recovery goes with the presumption: 1871762400 != 0] test_aSilentPresumptionClearsAPendingRecoveryAndAnyReporter() (gas: 496631)",
+    "[FAIL: the pending recovery goes with the presumption: 1871762400 != 0] test_aSilentPresumptionClearsAPendingRecoveryAndAnyReporter() (gas: 496631)"
+   ],
+   "seconds": 14.1
+  },
+  {
+   "mutation": "guardians-neighbours-only",
+   "bug": "only neighbouring guardian slots must differ",
+   "outcome": "killed",
+   "failing": [
+    "[FAIL: next call did not revert as expected] test_guardiansMustBeDifferentPeople() (gas: 51838)",
+    "[FAIL: next call did not revert as expected] test_guardiansMustBeDifferentPeople() (gas: 51838)"
+   ],
+   "seconds": 12.4
+  },
+  {
+   "mutation": "recovery-keeps-old-window",
+   "bug": "a newer recovery request inherits the earlier request's window",
+   "outcome": "killed",
+   "failing": [
+    "[FAIL: assertion failed: 1800914400 != 1806098400] test_aNewRecoveryRequestRestartsTheWindow() (gas: 198675)",
+    "[FAIL: assertion failed: 1800914400 != 1806098400] test_aNewRecoveryRequestRestartsTheWindow() (gas: 198675)"
+   ],
+   "seconds": 13.9
+  },
+  {
+   "mutation": "applied-recovery-not-own-proof",
+   "bug": "an applied recovery doesn't count as the member's own proof of life",
+   "outcome": "killed",
+   "failing": [
+    "[FAIL: assertion failed: 1790460000 != 1800914400] test_anAppliedRecoveryIsHerOwnProofOfLife() (gas: 210975)",
+    "[FAIL: assertion failed: 1790460000 != 1800914400] test_anAppliedRecoveryIsHerOwnProofOfLife() (gas: 210975)"
+   ],
+   "seconds": 13.7
+  },
+  {
+   "mutation": "presume-mid-recovery",
+   "bug": "a member whose recovery is pending is presumed dead for a lapsed identity",
+   "outcome": "killed",
+   "failing": [
+    "[FAIL: next call did not revert as expected] test_aMemberMidRecoveryIsNotPresumedForALapsedIdentity() (gas: 2927049)",
+    "[FAIL: next call did not revert as expected] test_aMemberMidRecoveryIsNotPresumedForALapsedIdentity() (gas: 2927049)"
+   ],
+   "seconds": 15.6
+  },
+  {
+   "mutation": "revive-keeps-reporter",
+   "bug": "a revival leaves the old reporter on record",
+   "outcome": "killed",
+   "failing": [
+    "[FAIL: revived: no reporter on record: 0xA6fa0E50D264E2E3DcC9e7095ef239aa93d38197 != 0x0000000000000000000000000000000000000000] test_aSilentPresumptionClearsAPendingRecoveryAndAnyReporter() (gas: 345656)",
+    "[FAIL: revived: no reporter on record: 0xA6fa0E50D264E2E3DcC9e7095ef239aa93d38197 != 0x0000000000000000000000000000000000000000] test_aSilentPresumptionClearsAPendingRecoveryAndAnyReporter() (gas: 345656)"
+   ],
+   "seconds": 18.9
+  },
+  {
+   "mutation": "anyone-cancels-recovery",
+   "bug": "anyone may cancel a pending recovery",
+   "outcome": "killed",
+   "failing": [
+    "[FAIL: next call did not revert as expected] test_thePayoutAddressCanCancelARecoveryAndNobodyElse() (gas: 180398)",
+    "[FAIL: next call did not revert as expected] test_thePayoutAddressCanCancelARecoveryAndNobodyElse() (gas: 180398)"
+   ],
+   "seconds": 15.3
+  },
+  {
+   "mutation": "strong-period-shortenable",
+   "bug": "governance may shorten the identity period",
+   "outcome": "killed",
+   "failing": [
+    "[FAIL: next call did not revert as expected] test_passkeyCheckInsAloneLapseAfterTheStrongPeriod() (gas: 1688433)",
+    "[FAIL: next call did not revert as expected] test_passkeyCheckInsAloneLapseAfterTheStrongPeriod() (gas: 1688433)"
+   ],
+   "seconds": 17.5
   }
  ],
- "at": 1790529971
+ "at": 1790552803
 }

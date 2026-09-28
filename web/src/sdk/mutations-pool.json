@@ -1,6 +1,6 @@
 {
- "killed": 26,
- "total": 26,
+ "killed": 36,
+ "total": 36,
  "baseline_passes": true,
  "results": [
   {
@@ -8,183 +8,253 @@
    "bug": "a top-up keeps the old income snapshot (the CRITICAL finding)",
    "test": "a_top_up_keeps_income_already_owed_and_earns_only_from_then",
    "outcome": "killed",
-   "seconds": 578.1
+   "seconds": 263.0
   },
   {
    "mutation": "exit-after-income-starts",
    "bug": "exit() does not re-check that income has not started",
-   "test": "an_exit_notice_lapses_after_90_days_and_never_outlives_the_start_of_income",
+   "test": "an_exit_notice_lapses_after_150_days_and_never_outlives_the_start_of_income",
    "outcome": "killed",
-   "seconds": 145.4
+   "seconds": 277.7
   },
   {
    "mutation": "exit-notice-never-lapses",
    "bug": "a matured notice never expires",
-   "test": "an_exit_notice_lapses_after_90_days_and_never_outlives_the_start_of_income",
+   "test": "an_exit_notice_lapses_after_150_days_and_never_outlives_the_start_of_income",
    "outcome": "killed",
-   "seconds": 149.4
+   "seconds": 271.6
   },
   {
    "mutation": "init-front-run",
    "bug": "anyone may call init first",
    "test": "only_the_deployer_can_initialise",
    "outcome": "killed",
-   "seconds": 139.2
+   "seconds": 252.8
   },
   {
    "mutation": "claim-pays-caller",
    "bug": "claim pays the caller instead of the payout address",
    "test": "paying_cohort_sells_its_payout_fraction_and_only_the_living_are_paid",
    "outcome": "killed",
-   "seconds": 142.4
+   "seconds": 354.3
   },
   {
    "mutation": "enroll-wrong-key",
    "bug": "join enrolls the wrong cohort key in the registry",
    "test": "contributions_are_forward_priced_into_units_split_by_bequest_share",
    "outcome": "killed",
-   "seconds": 142.3
+   "seconds": 328.5
   },
   {
    "mutation": "estate-to-payout",
    "bug": "a presumed death pays the estate to the payout address, not the beneficiary",
    "test": "a_presumed_death_funds_the_revival_reserve_and_a_revived_member_is_repaid",
    "outcome": "killed",
-   "seconds": 286.5
+   "seconds": 219.8
   },
   {
    "mutation": "held-estate-to-payout",
    "bug": "a reported death's held estate is paid to the payout address, not the beneficiary",
    "test": "a_death_credits_survivors_pays_the_heir_and_nothing_more_to_the_dead",
    "outcome": "killed",
-   "seconds": 292.1
+   "seconds": 283.3
   },
   {
    "mutation": "no-reserve-for-reports",
    "bug": "reported deaths fund no revival reserve (so they could never be undone)",
    "test": "a_reported_death_pays_no_bounty_funds_the_reserve_and_can_be_undone",
    "outcome": "killed",
-   "seconds": 142.6
+   "seconds": 203.3
   },
   {
    "mutation": "restore-presumed-only",
    "bug": "only presumed deaths can be restored",
    "test": "a_reported_death_pays_no_bounty_funds_the_reserve_and_can_be_undone",
    "outcome": "killed",
-   "seconds": 162.6
+   "seconds": 206.2
   },
   {
    "mutation": "hold-without-grace",
    "bug": "a flag holds income at once",
    "test": "the_ghost_detector_flags_a_group_with_no_deaths_and_holds_it_after_120_days_until_strong_proofs",
    "outcome": "killed",
-   "seconds": 144.9
+   "seconds": 212.5
   },
   {
    "mutation": "abort-anytime",
    "bug": "a rebalance can be aborted without waiting a day",
    "test": "a_stuck_rebalance_can_be_abandoned_after_a_day",
    "outcome": "killed",
-   "seconds": 156.2
+   "seconds": 205.5
   },
   {
    "mutation": "ghost-no-lag",
    "bug": "the ghost detector tests each epoch against itself (flags every honest group at launch)",
    "test": "the_ghost_detector_flags_a_group_with_no_deaths_and_holds_it_after_120_days_until_strong_proofs",
    "outcome": "killed",
-   "seconds": 155.0
+   "seconds": 209.9
   },
   {
    "mutation": "exit-fee-zero",
    "bug": "the 1% exit fee is dropped",
    "test": "an_exit_after_notice_pays_the_member_and_leaves_one_percent_with_those_who_stay",
    "outcome": "killed",
-   "seconds": 155.4
+   "seconds": 201.6
   },
   {
    "mutation": "markdead-accepts-living",
    "bug": "mark_dead queues a member the registry has not declared dead",
    "test": "only_a_death_the_registry_made_final_can_be_queued",
    "outcome": "killed",
-   "seconds": 167.7
+   "seconds": 216.0
   },
   {
    "mutation": "restore-stale-revival",
    "bug": "restore trusts any revival on record, even while the registry says the member is dead",
    "test": "a_reported_death_pays_no_bounty_funds_the_reserve_and_can_be_undone",
    "outcome": "killed",
-   "seconds": 170.1
+   "seconds": 208.0
   },
   {
    "mutation": "restore-pays-cash",
    "bug": "an undone death is repaid in cash to the payout address (an exit after income started)",
    "test": "a_reported_death_pays_no_bounty_funds_the_reserve_and_can_be_undone",
    "outcome": "killed",
-   "seconds": 188.8
+   "seconds": 214.4
   },
   {
    "mutation": "pause-forever",
    "bug": "a pause holds settlements for as long as it lasts",
    "test": "the_guardian_can_stop_new_business_but_not_money_already_owed",
    "outcome": "killed",
-   "seconds": 243.2
+   "seconds": 207.7
   },
   {
    "mutation": "bequest-pays-income",
    "bug": "the bequest part is paid out at a life-contingent rate (and dwindles)",
    "test": "settlement_one_item_per_transaction_equals_settlement_in_one",
    "outcome": "killed",
-   "seconds": 162.6
+   "seconds": 274.0
   },
   {
    "mutation": "release-ignores-revival",
    "bug": "a member revived before the settlement is released anyway",
    "test": "a_member_revived_before_the_settlement_is_not_released",
    "outcome": "killed",
-   "seconds": 162.4
+   "seconds": 307.9
   },
   {
    "mutation": "restore-erases-remainder",
    "bug": "what the reserve can't cover is written off",
    "test": "a_revival_the_reserve_cannot_cover_yet_stays_owed_and_is_repaid_later",
    "outcome": "killed",
-   "seconds": 193.9
+   "seconds": 378.1
   },
   {
    "mutation": "estate-paid-at-once",
    "bug": "a reported death's estate is paid at once (a false report pays the family)",
    "test": "a_death_credits_survivors_pays_the_heir_and_nothing_more_to_the_dead",
    "outcome": "killed",
-   "seconds": 167.8
+   "seconds": 331.7
   },
   {
    "mutation": "revived-estate-to-heir",
    "bug": "a revived member's held estate still goes to the beneficiary",
-   "test": "a_reported_death_pays_no_bounty_funds_the_reserve_and_can_be_undone",
+   "test": "a_held_estate_moves_only_between_settlements_and_after_the_restore",
    "outcome": "killed",
-   "seconds": 249.2
+   "seconds": 275.1
   },
   {
    "mutation": "pause-refresh",
    "bug": "pausing again while paused restarts the 7-day hold",
    "test": "nobody_can_stretch_a_pause_past_seven_days",
    "outcome": "killed",
-   "seconds": 163.3
+   "seconds": 265.7
   },
   {
    "mutation": "owner-pause-anytime",
    "bug": "the owner may pause again at any time",
    "test": "nobody_can_stretch_a_pause_past_seven_days",
    "outcome": "killed",
-   "seconds": 150.9
+   "seconds": 315.0
   },
   {
    "mutation": "exit-ignores-pause",
    "bug": "a matured exit goes through during a pause",
    "test": "a_pause_holds_a_matured_exit_for_at_most_seven_days",
    "outcome": "killed",
-   "seconds": 170.2
+   "seconds": 364.3
+  },
+  {
+   "mutation": "owed-overwritten",
+   "bug": "a second release overwrites what an earlier undone death still owes",
+   "test": "a_second_false_death_adds_to_what_the_first_still_owes",
+   "outcome": "killed",
+   "seconds": 447.1
+  },
+  {
+   "mutation": "restore-ignores-real-death",
+   "bug": "a restore settled with her real death re-enrols her",
+   "test": "a_restore_that_meets_a_real_death_keeps_her_released",
+   "outcome": "killed",
+   "seconds": 410.9
+  },
+  {
+   "mutation": "repayment-minted-now",
+   "bug": "a repayment for a member already queued is minted from this month's deposit",
+   "test": "a_repayment_for_a_member_already_queued_waits_for_next_month",
+   "outcome": "killed",
+   "seconds": 436.8
+  },
+  {
+   "mutation": "exited-re-enrolled",
+   "bug": "an exited member still owed is re-enrolled at risk",
+   "test": "a_member_who_left_is_repaid_what_she_is_owed_in_cash",
+   "outcome": "killed",
+   "seconds": 448.2
+  },
+  {
+   "mutation": "post-income-to-survivors-now",
+   "bug": "a reported death's income after its date goes to the survivors at once",
+   "test": "a_reported_deaths_income_after_its_date_waits_then_goes_to_the_survivors",
+   "outcome": "killed",
+   "seconds": 418.4
+  },
+  {
+   "mutation": "contribute-to-the-dead",
+   "bug": "deposits are taken for a member the registry says has died",
+   "test": "only_a_death_the_registry_made_final_can_be_queued",
+   "outcome": "killed",
+   "seconds": 272.6
+  },
+  {
+   "mutation": "estate-hold-1-day",
+   "bug": "a reported death's estate is held a day, not a year",
+   "test": "a_death_credits_survivors_pays_the_heir_and_nothing_more_to_the_dead",
+   "outcome": "killed",
+   "seconds": 293.0
+  },
+  {
+   "mutation": "pay-estate-mid-run",
+   "bug": "a held estate can be settled mid-settlement",
+   "test": "a_held_estate_moves_only_between_settlements_and_after_the_restore",
+   "outcome": "killed",
+   "seconds": 295.8
+  },
+  {
+   "mutation": "pause-cooldown-8-days",
+   "bug": "a pause can be repeated every eight days",
+   "test": "nobody_can_stretch_a_pause_past_seven_days",
+   "outcome": "killed",
+   "seconds": 239.4
+  },
+  {
+   "mutation": "release-skips-only-active",
+   "bug": "the revival skip holds only for a member who is Active again",
+   "test": "a_member_revived_before_the_settlement_is_not_released",
+   "outcome": "killed",
+   "seconds": 227.9
   }
  ],
- "at": 1790539260
+ "at": 1790565517
 }
