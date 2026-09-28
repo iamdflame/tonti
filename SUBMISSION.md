@@ -25,10 +25,15 @@ A member (or their child, from a Singapore wage) pays USDG in. The pool invests 
 
 | Contract | Language | Address | Role |
 |---|---|---|---|
-| Actuary | Stylus (Rust) | [`0x4cd86134f0ec64263df710f0414d21a18d116525`](https://robinhoodchain.blockscout.com/address/0x4cd86134f0ec64263df710f0414d21a18d116525) | mortality for every cohort, the on-chain Monte Carlo quote, payout fractions |
+| Actuary | Stylus (Rust) | [`0x275a29977166dafb866b2985753e9ef2679bf762`](https://robinhoodchain.blockscout.com/address/0x275a29977166dafb866b2985753e9ef2679bf762) | mortality for every cohort, the on-chain Monte Carlo quote, payout fractions |
+| TontiPool | Stylus (Rust) | [`0x28eb67dc702e8809f34b769d4cb8a06c913dee40`](https://robinhoodchain.blockscout.com/address/0x28eb67dc702e8809f34b769d4cb8a06c913dee40) | members, cohorts, paged settlement, fair mortality credits, exits, the ghost detector |
+| Treasury | Solidity | [`0x97Fc9Ab76384c17F80C3C8194a4743929c4e0553`](https://robinhoodchain.blockscout.com/address/0x97Fc9Ab76384c17F80C3C8194a4743929c4e0553) | USDG in Morpho, SPY and SGOV via Uniswap v4, Chainlink prices with staleness and slippage guards |
+| LifeRegistry | Solidity | [`0x8b5Dd3af2668A19a6b86BB57Af669457651031c0`](https://robinhoodchain.blockscout.com/address/0x8b5Dd3af2668A19a6b86BB57Af669457651031c0) | passkey check-ins (RIP-7212), identity binding, death reports, presumption and revival |
+| AttestedIdentity | Solidity | [`0x2F22629339a4B6c645015Fc0434823Db188AAC28`](https://robinhoodchain.blockscout.com/address/0x2F22629339a4B6c645015Fc0434823Db188AAC28) | EIP-712 identity attestations bound to the cohort key |
+| TimelockController | Solidity (OpenZeppelin) | [`0x8D10F019d7694987031262c0Bcf86c9Dc9deED89`](https://robinhoodchain.blockscout.com/address/0x8D10F019d7694987031262c0Bcf86c9Dc9deED89) | owns every contract; 48-hour notice on any parameter change |
 
 Mortality loaded for: PHL, IDN, IND, BGD, MMR, LKA, NPL, VNM, THA, MYS, CHN, SGP (24 of 24 country-sex groups).
-Governance: owned by the deployer until the timelock handover.
+Governance: every contract is owned by the 48-hour timelock.
 
 ## Technical execution (measured, not claimed)
 
@@ -38,8 +43,8 @@ Governance: owned by the deployer until the timelock handover.
 - **Fair credits in small pools:** a finite-pool correction we derived cuts the bias from 4.8% to 0.26% RMS at 100 members, and to 0.012% at 10,000. 201,211,945 survivor credits were matched to the ledger exactly.
 - **The dead are never paid, the living never killed:** a passkey check-in every 90 days (verified by the chain's P-256 precompile); a death report has 120 days to be answered by the member's own proof; any death can be undone within five years, and the member's money goes back into their own account from a revival reserve (as far as it goes; the rest stays owed and is repaid as it refills). There is no reward for reporting, and a reported death's estate is held for a year, so a false report can't pay anyone. A lost phone is recovered only after 120 days that the member's own check-in can cancel.
 - **Hidden deaths:** a ghost-member detector (Wald's SPRT, compared against deaths expected five months earlier) runs inside every settlement: 0.0% of honest groups flagged within three years, 83% of groups hiding half their deaths within two. Passkey ghosts are presumed dead after 800 days without an identity proof.
-- **Mortality:** 1,704 cohorts fitted to UN WPP 2024 and ready to load (the live v1 Actuary holds an older fit; the relaunch loads and seals this one); worst annuity-factor error 1.35% from the ages income starts, 1.70% from 90.
-- **Tests that can fail:** 62 Rust, 39 Solidity (9 against live mainnet state) and 6 TypeScript tests against the real contracts on anvil. Deliberately planted bugs caught: 26 of 26 in the pool, 15 of 15 in the LifeRegistry. Three independent adversarial reviews; every finding is fixed or disclosed, and listed in `.claude/uncomparable.md`.
+- **Mortality:** 1,704 cohorts fitted to UN WPP 2024 and sealed on-chain; worst annuity-factor error 1.35% from the ages income starts, 1.70% from 90.
+- **Tests that can fail:** 68 Rust, 45 Solidity (10 against live mainnet state) and 6 TypeScript tests against the real contracts on anvil. Deliberately planted bugs caught: 36 of 36 in the pool, 23 of 23 in the LifeRegistry. Four independent adversarial reviews; every finding is fixed or disclosed, and listed in `.claude/uncomparable.md`.
 - **The site, judged on its public URL** (`web/scripts/judge.mjs`, https://tonti-life.vercel.app): 20/20 equal a direct eth_call and encode the inputs asked; 80/80 route×width×language loads clean; axe: 0 violation types over 20 pages; a passkey made with Chrome's virtual authenticator.
 
 Full evidence: `README.md` ("What is measured"); the specification is `docs/protocol.md`.

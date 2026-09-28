@@ -68,6 +68,21 @@ Full specification: [`docs/protocol.md`](docs/protocol.md).
 
 Raw reports go to `runs/` (or `$TONTI_RUNS`).
 
+## Live on Robinhood Chain mainnet (chain 4663)
+
+Deployed 2026-09-28 from block 74,510,636, every contract owned by the 48-hour timelock:
+
+| Contract | Address | Source |
+|---|---|---|
+| Actuary v2 (Stylus): mortality for 1,704 cohorts, **sealed** | [`0x275a2997…f762`](https://robinhoodchain.blockscout.com/address/0x275a29977166dafb866b2985753e9ef2679bf762) | `engine/actuary-stylus` |
+| TontiPool (Stylus) | [`0x28eb67dc…ee40`](https://robinhoodchain.blockscout.com/address/0x28eb67dc702e8809f34b769d4cb8a06c913dee40) | `engine/pool-stylus` |
+| Treasury | [`0x97Fc9Ab7…0553`](https://robinhoodchain.blockscout.com/address/0x97Fc9Ab76384c17F80C3C8194a4743929c4e0553) | Sourcify exact match |
+| LifeRegistry | [`0x8b5Dd3af…31c0`](https://robinhoodchain.blockscout.com/address/0x8b5Dd3af2668A19a6b86BB57Af669457651031c0) | Sourcify exact match |
+| AttestedIdentity | [`0x2F226293…AC28`](https://robinhoodchain.blockscout.com/address/0x2F22629339a4B6c645015Fc0434823Db188AAC28) | Sourcify exact match |
+| TimelockController (48 h) | [`0x8D10F019…ED89`](https://robinhoodchain.blockscout.com/address/0x8D10F019d7694987031262c0Bcf86c9Dc9deED89) | Sourcify match (OpenZeppelin 5.4) |
+
+The first Actuary (`0x4cd8…6525`) is retired: it had no seal and an older fit. The Solidity sources are verified on [Sourcify](https://repo.sourcify.dev/4663/); Sourcify doesn't verify Stylus WASM, so the two Stylus contracts are verified the Stylus way: build `engine/` with `TONTI_DEPLOYER=0xf910fC2fD395128A894e9754bE56479F05b54121` and compare the activated code hash. The full relaunch cost 0.00376 ETH (0.00649 before, 0.00274 after), 0.00253 of it for loading mortality.
+
 ## Governance, exactly
 
 A 48-hour timelock owns every contract. The deployer proposes changes, and anyone can execute one once its notice has passed.
@@ -131,7 +146,7 @@ python3 services/keeper.py <key-file>        # settlement pages, rebalance, deat
 
 - **Income isn't guaranteed or inflation-linked.** It is paid in nominal USDG and follows the markets. For retirees of 2000, level-plan real income fell 51% by 2022, because T-bills paid 1.6% against the 3.5% the plan was priced at; the Escalating plan's fell 24%.
 - **A research preview.** Deposits are capped at 25 USDG per member while it runs with real people.
-- **The relaunch.** The core contracts are being redeployed after today's fixes; the site quotes the Actuary live on mainnet.
+- **No members yet.** The pool is live and empty: the first real member joins with Dave's OK, within the 25 USDG research-preview cap.
 - **Identity is attested by the operator for now.** The built adapter checks an EIP-712 statement signed by the operator after a document check by video call. That is a trusted party, bounded by the timelocked, delayed allow-list. ZKPassport and national-ID QR adapters use the same interface without one.
 - **The oracle check limits manipulation; it doesn't prevent it.** A trade can fill up to `maxSlippageBps` from a Chainlink price up to 26 hours old. A fresher price source is on the roadmap.
 - **Settlement can stall on a paused token.** A rebalance can be abandoned, but income sales need their sleeve to trade.
