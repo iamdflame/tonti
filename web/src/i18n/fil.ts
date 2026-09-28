@@ -304,6 +304,7 @@ export const fil = {
     reported: 'May nag-ulat ng pagkamatay. Mag-check in bago ang {date} para sagutin ito.',
   },
   pool: {
+    nextFirst: 'Pagkatapos ng unang deposito',
     title: 'Ang pool, live sa Robinhood Chain',
     lead: 'Lahat ng nasa pahinang ito ay binabasa mula sa chain habang tinitingnan mo.',
     members: 'Mga miyembro',

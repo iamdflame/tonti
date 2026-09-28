@@ -370,7 +370,8 @@ export function tonti(client: PublicClient, addresses: Addresses, wallet?: Walle
       return {
         epoch,
         lastSettle: date(lastSettle),
-        nextSettle: date(lastSettle + epochLength),
+        /** Null before the first settlement: the first one runs once there is money to invest. */
+        nextSettle: lastSettle ? date(lastSettle + epochLength) : null,
         phase: PHASES[Number(run[0])] ?? 'unknown',
         cursor: run[1],
         cohortsInRun: run[2],

@@ -46,7 +46,7 @@ export default async function PoolPage({ params }: PageProps<'/[locale]/pool'>) 
             {stat(t.pool.members, num(locale, live[0].members))}
             {stat(t.pool.cohorts, num(locale, live[0].cohorts))}
             {stat(t.pool.epoch, num(locale, live[1].epoch))}
-            {stat(t.pool.next, fmtDate(locale, live[1].nextSettle))}
+            {stat(t.pool.next, live[1].nextSettle ? fmtDate(locale, live[1].nextSettle) : t.pool.nextFirst)}
           </dl>
           {live[2] && (
             <section className="mt-10">

@@ -302,6 +302,7 @@ export const en = {
     reported: 'A death was reported. Check in before {date} to answer it.',
   },
   pool: {
+    nextFirst: 'After the first deposit',
     title: 'The pool, live on Robinhood Chain',
     lead: 'Everything on this page is read from the chain as you look at it.',
     members: 'Members',
