@@ -250,7 +250,7 @@
     - Governance could stop settlement through the Treasury bounds. Staleness is now ≥ 26 h and slippage ≥ 0.3%.
     - A guardian-reliant member could be taken over by one attester statement. The payout wallet can now cancel a recovery.
     - The phone thief is paid by the victim's own renewals and inherits at presumption. Disclosed in full in README and spec; not closable on-chain without a second trusted step.
-    - Round-3 registry and pool guards whose mutations survived: tests added. The registry suite now kills 23/23; the pool suite has 37 mutations (run in progress).
+    - Round-3 registry and pool guards whose mutations survived: tests added. The registry suite now kills 23/23; the pool suite kills 36/36.
   - **LOW, fixed:**
     - presumption mid-recovery;
     - `reporterOf` surviving a revival;

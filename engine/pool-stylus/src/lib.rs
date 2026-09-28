@@ -1609,44 +1609,31 @@ impl TontiPool {
         Ok(())
     }
 
-    /// Pays a reported death's held estate: to the beneficiary once `ESTATE_HOLD` has passed and the
-    /// registry still says the member is dead; or, at any time, back into the member's own account
-    /// if they were revived (after their `restore`). Anyone may call.
+    /// Pays a reported death's held estate to the beneficiary, and its post-death income to the
+    /// survivors, once `ESTATE_HOLD` has passed and the registry still says the member is dead.
+    /// A revived member's estate comes back with her `restore` instead. Anyone may call.
     pub fn pay_estate(&mut self, member_id: U256) -> Result<(), PoolError> {
         if self.phase.get() != U256::ZERO {
             return Err(PoolError::Busy(Busy {}));
         }
         let usdg = self.m_estate.get(member_id);
-        if usdg == U256::ZERO && self.m_post.get(member_id) == U256::ZERO {
+        let post = self.m_post.get(member_id);
+        if usdg == U256::ZERO && post == U256::ZERO {
             return Err(PoolError::BadInput(BadInput {}));
         }
         let registry = ILifeRegistry::new(self.registry.get());
         let s = ext(registry.status(self.vm(), Call::new(), member_id))?;
-        if s == STATUS_DECEASED || s == STATUS_PRESUMED {
-            if self.now() < u128_of(self.m_estate_at.get(member_id))? + ESTATE_HOLD {
-                return Err(PoolError::TooEarly(TooEarly {}));
-            }
-            let heir = self.beneficiary_of(member_id)?;
-            self.claimable.insert(heir, self.claimable.get(heir) + usdg);
-            self.vm().log(EstatePaid { memberId: member_id, to: heir, usdg });
-            // Her income after the date of death: the survivors', credited at the next settlement.
-            self.unallocated_usdg.set(self.unallocated_usdg.get() + self.m_post.get(member_id));
-        } else {
-            let flags = self.m_flags.get(member_id).to::<u64>();
-            if flags & FLAG_RELEASED != 0 {
-                return Err(PoolError::NotEligible(NotEligible {})); // restore first
-            }
-            // Revived: invested back into their own account at the next settlement.
-            let usdg = usdg + self.m_post.get(member_id);
-            self.m_pending.insert(member_id, self.m_pending.get(member_id) + usdg);
-            self.pending_total.set(self.pending_total.get() + usdg);
-            if flags & FLAG_QUEUED_DEPOSIT == 0 {
-                self.m_flags.insert(member_id, U256::from(flags | FLAG_QUEUED_DEPOSIT));
-                self.pending_members.push(member_id);
-            }
-            let to = self.vm().contract_address();
-            self.vm().log(Restored { memberId: member_id, to, usdg });
+        if s != STATUS_DECEASED && s != STATUS_PRESUMED {
+            return Err(PoolError::NotEligible(NotEligible {})); // alive: it returns with her restore
         }
+        if self.now() < u128_of(self.m_estate_at.get(member_id))? + ESTATE_HOLD {
+            return Err(PoolError::TooEarly(TooEarly {}));
+        }
+        let heir = self.beneficiary_of(member_id)?;
+        self.claimable.insert(heir, self.claimable.get(heir) + usdg);
+        self.vm().log(EstatePaid { memberId: member_id, to: heir, usdg });
+        // Her income after the date of death: the survivors', credited at the next settlement.
+        self.unallocated_usdg.set(self.unallocated_usdg.get() + post);
         self.m_estate.insert(member_id, U256::ZERO);
         self.m_post.insert(member_id, U256::ZERO);
         Ok(())
