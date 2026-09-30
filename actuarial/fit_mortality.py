@@ -42,7 +42,7 @@ from paths import DATA as _DATA, RUNS
 DATA = _DATA / 'wpp2024'
 REPO = Path(__file__).resolve().parent.parent
 # Origin countries of Singapore's foreign workforce, plus Singapore.
-COUNTRIES = ['PHL', 'IDN', 'IND', 'BGD', 'MMR', 'MYS', 'CHN', 'THA', 'LKA', 'VNM', 'NPL', 'SGP']
+COUNTRIES = ['PHL', 'IDN', 'IND', 'BGD', 'MMR', 'MYS', 'CHN', 'THA', 'LKA', 'VNM', 'NPL', 'SGP', 'GHA']
 SEXES = {'Female': 0, 'Male': 1}
 AGE_MIN, AGE_MAX = 30, 99
 BIRTH_YEARS = range(1935, 2006)
@@ -171,10 +171,18 @@ def main():
     ap.add_argument('--years-from', type=int, default=2000)
     ap.add_argument('--out', type=Path, default=REPO / 'config' / 'mortality.json')
     ap.add_argument('--late-weight', type=float, default=LATE_WEIGHT)
+    ap.add_argument('--only', help='fit just these ISO3 codes (comma-separated) and merge them into --out, leaving every other country as it is')
     args = ap.parse_args()
+    global COUNTRIES
+    if args.only:
+        COUNTRIES = [c for c in args.only.split(',') if c]
     LATE_WEIGHT = args.late_weight
     data = load(args.years_from)
     params, report = {}, {}
+    if args.only and args.out.exists():
+        params = json.loads(args.out.read_text())['params']
+        old = RUNS / 'mortality-fit.json'
+        report = json.loads(old.read_text()) if old.exists() else {}
     for iso in COUNTRIES:
         for sex, sex_id in SEXES.items():
             d = data[(data.ISO3_code == iso) & (data.Sex == sex)]
