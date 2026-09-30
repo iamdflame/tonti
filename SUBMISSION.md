@@ -10,7 +10,7 @@ Singapore employs 1,635,700 foreign workers (MOM, Dec 2025). None of them can jo
 
 A member (or their child, from a Singapore wage) pays USDG in. The pool invests it along a glide path in SPY and SGOV stock tokens and USDG in Morpho. From the chosen age, the pool pays monthly USDG income for life. When a member dies, the at-risk part of their balance moves to the survivors. That transfer is what lets the pool pay more than anyone could safely draw alone.
 
-- **Quote, on-chain, in about a second:** a 512-path Monte Carlo inside an `eth_call` to the live Actuary: a female born 1966 in PHL with $3,000 + $30/month gets $25.28/month for life from 62 (P10 $22.89, P90 $27.71); drawn alone the same income runs out at 80.4, with a 50% chance of still being alive (1.0 s, 9,522,504 gas)
+- **Quote, on-chain, in about a second:** a 512-path Monte Carlo inside an `eth_call` to the live Actuary: a female born 1966 in PHL with $3,000 + $30/month gets $25.35/month for life from 62 (P10 $23.05, P90 $27.70); drawn alone the same income runs out at 80.2, with a 49% chance of still being alive (1.2 s, 9,522,244 gas)
 - **Level or Escalating plans,** like CPF LIFE's.
 - **Exit before income starts,** with 12 months' notice.
 - **Nobody can claim to be older than they are:** deposits, income and exits need an identity statement bound to the member's birth year, sex and country.
@@ -25,14 +25,14 @@ A member (or their child, from a Singapore wage) pays USDG in. The pool invests 
 
 | Contract | Language | Address | Role |
 |---|---|---|---|
-| Actuary | Stylus (Rust) | [`0x275a29977166dafb866b2985753e9ef2679bf762`](https://robinhoodchain.blockscout.com/address/0x275a29977166dafb866b2985753e9ef2679bf762) | mortality for every cohort, the on-chain Monte Carlo quote, payout fractions |
-| TontiPool | Stylus (Rust) | [`0x28eb67dc702e8809f34b769d4cb8a06c913dee40`](https://robinhoodchain.blockscout.com/address/0x28eb67dc702e8809f34b769d4cb8a06c913dee40) | members, cohorts, paged settlement, fair mortality credits, exits, the ghost detector |
-| Treasury | Solidity | [`0x97Fc9Ab76384c17F80C3C8194a4743929c4e0553`](https://robinhoodchain.blockscout.com/address/0x97Fc9Ab76384c17F80C3C8194a4743929c4e0553) | USDG in Morpho, SPY and SGOV via Uniswap v4, Chainlink prices with staleness and slippage guards |
-| LifeRegistry | Solidity | [`0x8b5Dd3af2668A19a6b86BB57Af669457651031c0`](https://robinhoodchain.blockscout.com/address/0x8b5Dd3af2668A19a6b86BB57Af669457651031c0) | passkey check-ins (RIP-7212), identity binding, death reports, presumption and revival |
-| AttestedIdentity | Solidity | [`0x2F22629339a4B6c645015Fc0434823Db188AAC28`](https://robinhoodchain.blockscout.com/address/0x2F22629339a4B6c645015Fc0434823Db188AAC28) | EIP-712 identity attestations bound to the cohort key |
-| TimelockController | Solidity (OpenZeppelin) | [`0x8D10F019d7694987031262c0Bcf86c9Dc9deED89`](https://robinhoodchain.blockscout.com/address/0x8D10F019d7694987031262c0Bcf86c9Dc9deED89) | owns every contract; 48-hour notice on any parameter change |
+| Actuary | Stylus (Rust) | [`0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa`](https://robinhoodchain.blockscout.com/address/0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa) | mortality for every cohort, the on-chain Monte Carlo quote, payout fractions |
+| TontiPool | Stylus (Rust) | [`0xfde46333804f2ea5167bdb7f8f7408ab0cee6308`](https://robinhoodchain.blockscout.com/address/0xfde46333804f2ea5167bdb7f8f7408ab0cee6308) | members, cohorts, paged settlement, fair mortality credits, exits, the ghost detector |
+| Treasury | Solidity | [`0xb1273Eda4380039CaaBDAb79b1Ad756EEf1412Bc`](https://robinhoodchain.blockscout.com/address/0xb1273Eda4380039CaaBDAb79b1Ad756EEf1412Bc) | USDG in Morpho, SPY and SGOV via Uniswap v4, Chainlink prices with staleness and slippage guards |
+| LifeRegistry | Solidity | [`0x97e1D2f4E7d0B86aa85dc6691EA5cBF7175fC03D`](https://robinhoodchain.blockscout.com/address/0x97e1D2f4E7d0B86aa85dc6691EA5cBF7175fC03D) | passkey check-ins (RIP-7212), identity binding, death reports, presumption and revival |
+| AttestedIdentity | Solidity | [`0xd715390236b1f3c43689D74ab61b34B09E5aa1C7`](https://robinhoodchain.blockscout.com/address/0xd715390236b1f3c43689D74ab61b34B09E5aa1C7) | EIP-712 identity attestations bound to the cohort key |
+| TimelockController | Solidity (OpenZeppelin) | [`0x5986346B942D30C8Bdc9CB75a4F230140Ce5C504`](https://robinhoodchain.blockscout.com/address/0x5986346B942D30C8Bdc9CB75a4F230140Ce5C504) | owns every contract; 48-hour notice on any parameter change |
 
-Mortality loaded for: PHL, IDN, IND, BGD, MMR, LKA, NPL, VNM, THA, MYS, CHN, SGP (24 of 24 country-sex groups).
+Mortality loaded for: PHL, IDN, IND, BGD, MMR, LKA, NPL, VNM, THA, MYS, CHN, SGP, GHA (26 of 26 country-sex groups).
 Governance: every contract is owned by the 48-hour timelock.
 
 ## Technical execution (measured, not claimed)
@@ -43,7 +43,7 @@ Governance: every contract is owned by the 48-hour timelock.
 - **Fair credits in small pools:** a finite-pool correction we derived cuts the bias from 4.8% to 0.26% RMS at 100 members, and to 0.012% at 10,000. 201,211,945 survivor credits were matched to the ledger exactly.
 - **The dead are never paid, the living never killed:** a passkey check-in every 90 days (verified by the chain's P-256 precompile); a death report has 120 days to be answered by the member's own proof; any death can be undone within five years, and the member's money goes back into their own account from a revival reserve (as far as it goes; the rest stays owed and is repaid as it refills). There is no reward for reporting, and a reported death's estate is held for a year, so a false report can't pay anyone. A lost phone is recovered only after 120 days that the member's own check-in can cancel.
 - **Hidden deaths:** a ghost-member detector (Wald's SPRT, compared against deaths expected five months earlier) runs inside every settlement: 0.0% of honest groups flagged within three years, 83% of groups hiding half their deaths within two. Passkey ghosts are presumed dead after 800 days without an identity proof.
-- **Mortality:** 1,704 cohorts fitted to UN WPP 2024 and sealed on-chain; worst annuity-factor error 1.35% from the ages income starts, 1.70% from 90.
+- **Mortality:** 1,846 cohorts (13 countries) fitted to UN WPP 2024 and sealed on-chain; worst annuity-factor error 1.35% from the ages income starts, 1.72% from 90.
 - **Tests that can fail:** 68 Rust, 45 Solidity (10 against live mainnet state) and 6 TypeScript tests against the real contracts on anvil. Deliberately planted bugs caught: 36 of 36 in the pool, 23 of 23 in the LifeRegistry. Four independent adversarial reviews; every finding is fixed or disclosed, and listed in `.claude/uncomparable.md`.
 - **The site, judged on its public URL** (`web/scripts/judge.mjs`, https://tonti-life.vercel.app): 20/20 equal a direct eth_call and encode the inputs asked; 80/80 route×width×language loads clean; axe: 0 violation types over 20 pages; a passkey made with Chrome's virtual authenticator.
 

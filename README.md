@@ -18,7 +18,7 @@ The pool can't go insolvent either, because it only redistributes money from dea
 ## How it works
 
 - **Cohorts, not accounts.** Members are grouped by birth year, sex, country, start age and plan. A cohort shares one mortality curve, one glide path and one payout rate, so a month's settlement costs O(cohorts), not O(members).
-- **Mortality from the UN.** Each cohort has its own Gompertz–Makeham curve, fitted along its diagonal of the UN World Population Prospects 2024 tables. There are 1,704 cohorts: 12 countries, both sexes, born 1935–2005.
+- **Mortality from the UN.** Each cohort has its own Gompertz–Makeham curve, fitted along its diagonal of the UN World Population Prospects 2024 tables. There are 1,846 cohorts: 13 countries, both sexes, born 1935–2005.
   - The fit targets what sets income: the annuity factor from every age income can start (50–80), and at half weight from 85, 90 and 95, where income is still paid.
   - Once the tables are loaded, the Actuary is **sealed**, and no one can change mortality again.
 - **Fair mortality credits, even in small pools.**
@@ -50,7 +50,7 @@ Full specification: [`docs/protocol.md`](docs/protocol.md).
 |---|---|---|
 | The quote really runs on-chain | A 512-path quote costs **9.5M gas**, 30% of Robinhood Chain's 32M per-call cap. This was predicted before deployment by our Stylus gas meter (nitro's own ink pricing) and matched on mainnet within 0.6%. The first version needed ~380M gas and could never have run | `engine/ink-meter`, the live site |
 | The quote is right | It agrees with an independent float64 re-implementation to **1.1e-11** over 40 random quotes, with random markets, valuation rates, fees and path counts, and no run-out mismatches | `engine/tests/reference_quote.py` |
-| Mortality matches the UN tables where it pays | Fitted to the annuity factor from every age income can start (50–80) and, at half weight, from 85, 90 and 95, because income keeps being paid at `1/ä` from the age reached. Against the UN tables it was fitted to: worst error **1.35%** from start ages (95th percentile 0.60%, median 0.16%, 7,680 cohort × age pairs); from 85, **1.30%**; from 90, **1.70%**; from 95, **3.74%**. Fitted from 50–80 only, it reached 2.2%, 4.7% and 7.3% from those ages (skeptic review 2) | `actuarial/validate_fit.py` |
+| Mortality matches the UN tables where it pays | Fitted to the annuity factor from every age income can start (50–80) and, at half weight, from 85, 90 and 95, because income keeps being paid at `1/ä` from the age reached. Against the UN tables it was fitted to: worst error **1.35%** from start ages (95th percentile 0.62%, median 0.16%, 8,320 cohort × age pairs); from 85, **1.30%**; from 90, **1.72%**; from 95, **3.74%**. Fitted from 50–80 only, it reached 2.2%, 4.7% and 7.3% from those ages (skeptic review 2) | `actuarial/validate_fit.py` |
 | Credits are fair, even in small pools | On the same members and deaths, the correction cuts RMS bias from 4.8% to **0.26%** at 100 members, from 0.64% to 0.18% at 1,000, and from 0.051% to 0.012% at 10,000. At 20 members it is still 4.9% (from 31%) | `actuary-cli fairness` |
 | Accounting can't leak | Exact share conservation over 10k random settlements and 10k random rebalances. A top-up never creates income, checked over 20,000 random holdings | `actuary-core`, `pool-stylus` tests |
 | The tests can fail | The pool's test VM reverts on any call a test didn't set up, so paying the wrong address or enrolling the wrong key fails. Planted bugs, including every flaw the four independent reviews found: **36 in the pool** and **23 in the LifeRegistry**, each caught by the tests | `engine/tests/mutate_pool.py`, `engine/tests/mutate_registry.py` |
@@ -59,7 +59,7 @@ Full specification: [`docs/protocol.md`](docs/protocol.md).
 | Trades are real and bounded | On live Robinhood Chain mainnet state, $1,000 → SPY → back costs 12.5 bps, and SGOV 9.5 bps. Stale prices and worse-than-oracle fills are refused. Members still see their value when feeds are stale (`lastPrices`) | `contracts/test/Treasury.fork.t.sol` |
 | Running it is cheap | Settling and rebalancing a month for 300 members costs about **$0.03 per member-month**, in pages whose dearest used 5.8M gas, detection included | `engine/ink-meter` |
 | It would have worked through history | 2,000 Philippine women retiring at 65 with $10,000 each, replayed through 1965, 1973 and 2000 (UN death rates, CRSP returns, CPI, measured trading costs). The pool's income drawn alone ran out with 48–54% of them still alive. That is by construction, since a pot paying 1/ä runs out near life expectancy; the pool paid every survivor for life | `actuarial/replay.py` |
-| It fits on Robinhood Chain | Mainnet activation dry-runs pass: Actuary v2 34.8 KB, pool 53.3 KB | `cargo stylus check` |
+| It fits on Robinhood Chain | Mainnet activation dry-runs pass: Actuary 34.8 KB, pool 53.3 KB | `cargo stylus check` |
 
 **Tests:**
 - Rust: 26 core, 10 Actuary, 32 pool.
@@ -70,18 +70,24 @@ Raw reports go to `runs/` (or `$TONTI_RUNS`).
 
 ## Live on Robinhood Chain mainnet (chain 4663)
 
-Deployed 2026-09-28 from block 74,510,636, every contract owned by the 48-hour timelock:
+Deployed 2026-09-30 from block 76,631,644, every contract owned by the 48-hour timelock:
 
 | Contract | Address | Source |
 |---|---|---|
-| Actuary v2 (Stylus): mortality for 1,704 cohorts, **sealed** | [`0x275a2997…f762`](https://robinhoodchain.blockscout.com/address/0x275a29977166dafb866b2985753e9ef2679bf762) | `engine/actuary-stylus` |
-| TontiPool (Stylus) | [`0x28eb67dc…ee40`](https://robinhoodchain.blockscout.com/address/0x28eb67dc702e8809f34b769d4cb8a06c913dee40) | `engine/pool-stylus` |
-| Treasury | [`0x97Fc9Ab7…0553`](https://robinhoodchain.blockscout.com/address/0x97Fc9Ab76384c17F80C3C8194a4743929c4e0553) | Sourcify exact match |
-| LifeRegistry | [`0x8b5Dd3af…31c0`](https://robinhoodchain.blockscout.com/address/0x8b5Dd3af2668A19a6b86BB57Af669457651031c0) | Sourcify exact match |
-| AttestedIdentity | [`0x2F226293…AC28`](https://robinhoodchain.blockscout.com/address/0x2F22629339a4B6c645015Fc0434823Db188AAC28) | Sourcify exact match |
-| TimelockController (48 h) | [`0x8D10F019…ED89`](https://robinhoodchain.blockscout.com/address/0x8D10F019d7694987031262c0Bcf86c9Dc9deED89) | Sourcify match (OpenZeppelin 5.4) |
+| Actuary v3 (Stylus): mortality for 1,846 cohorts in 13 countries, **sealed** | [`0x1464069e…9ccaa`](https://robinhoodchain.blockscout.com/address/0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa) | `engine/actuary-stylus` |
+| TontiPool (Stylus) | [`0xfde46333…6308`](https://robinhoodchain.blockscout.com/address/0xfde46333804f2ea5167bdb7f8f7408ab0cee6308) | `engine/pool-stylus` |
+| Treasury | [`0xb1273Eda…12Bc`](https://robinhoodchain.blockscout.com/address/0xb1273Eda4380039CaaBDAb79b1Ad756EEf1412Bc) | Sourcify exact match |
+| LifeRegistry | [`0x97e1D2f4…C03D`](https://robinhoodchain.blockscout.com/address/0x97e1D2f4E7d0B86aa85dc6691EA5cBF7175fC03D) | Sourcify exact match |
+| AttestedIdentity | [`0xd7153902…a1C7`](https://robinhoodchain.blockscout.com/address/0xd715390236b1f3c43689D74ab61b34B09E5aa1C7) | Sourcify exact match |
+| TimelockController (48 h) | [`0x5986346B…C504`](https://robinhoodchain.blockscout.com/address/0x5986346B942D30C8Bdc9CB75a4F230140Ce5C504) | Sourcify exact match (OpenZeppelin 5.4) |
 
-The first Actuary (`0x4cd8…6525`) is retired: it had no seal and an older fit. The Solidity sources are verified on [Sourcify](https://repo.sourcify.dev/4663/); Sourcify doesn't verify Stylus WASM, so the two Stylus contracts are verified the Stylus way: build `engine/` with `TONTI_DEPLOYER=0xf910fC2fD395128A894e9754bE56479F05b54121` and compare the activated code hash. The full relaunch cost 0.00376 ETH (0.00649 before, 0.00274 after), 0.00253 of it for loading mortality.
+- **Before sealing,** all 1,846 cohorts were read back from the Actuary's `MortalitySet` events and matched `config/mortality.json` exactly. A Philippine quote returns the same numbers on v2 and v3 to the last unit.
+- **Retired:**
+  - The first Actuary (`0x4cd8…6525`): it had no seal and an older fit.
+  - The v2 system (Actuary `0x275a…f762`, pool `0x28eb…ee40`, from block 74,510,636). It was retired on 2026-09-30, before anyone had joined, to add Ghana: a sealed Actuary can't take a new country, and a pool's Actuary is fixed when it is set up.
+  - `config/deployment.json` keeps both under `retired`.
+- **Verification:** the Solidity sources are verified on [Sourcify](https://repo.sourcify.dev/4663/). Sourcify doesn't verify Stylus WASM, so the two Stylus contracts are verified the Stylus way: build `engine/` with `TONTI_DEPLOYER=0xf910fC2fD395128A894e9754bE56479F05b54121` and compare the activated code hash.
+- **Cost:** the Ghana relaunch cost 0.00436 ETH, 0.00304 of it for loading mortality (26 batches of about 5.25M gas each).
 
 ## Governance, exactly
 
@@ -154,7 +160,7 @@ python3 services/keeper.py <key-file>        # settlement pages, rebalance, deat
 - **The ghost detector judges death rates against the UN tables.** It tests 85% of the tables' deaths against 55%. Measured over 3 years, it flags 1.6% of honest groups 20% healthier than the tables and 16% of those 30% healthier, more if deaths take long to become final, and the published rates cover 3 years of a lifelong pool. Concealment of less than about 40% of a group's deaths is left to the yearly identity renewal. A flag costs members an identity renewal, never money.
 - **Recovery trusts the operator's identity check,** bounded by the 120-day delay that the member's check-in or her payout wallet can cancel. It can't win against someone holding both the member's unlocked phone and her wallet: they can cancel every recovery, and after moving the payout and beneficiary to themselves they are paid whenever she renews her identity or is revived, and inherit her estate if she is presumed dead. Closing that needs an off-chain step (a second, uncancellable identity check with a longer delay) that isn't built.
 - **Guardians keep a member from lapsing, but can't answer a death report.** A member who relies on guardians instead of checking in herself can be reported dead and not answer; the date of death is then her guardians' last confirmation.
-- **Mortality past 90.** Gompertz misfits the plateau (Singapore women: survival error 0.054).
+- **Mortality past 90.** Gompertz misfits the plateau (Singapore women: survival error 0.053).
 - **Regulation.** A longevity pool may count as insurance or a collective investment scheme. The path is the MAS FinTech Regulatory Sandbox, or a licensed trustee.
 
 Data: UN World Population Prospects 2024 (CC BY 3.0 IGO). Market data: Chainlink on Robinhood Chain.
