@@ -112,7 +112,7 @@ export function Hero() {
       {/* The sky fills the first screen; below it, night. */}
       <Sky sun={sun} className="absolute inset-x-0 top-0 -z-10 h-[100svh] min-h-[620px]" />
       <div className="absolute inset-x-0 top-[max(100svh,620px)] bottom-0 -z-10 bg-night" aria-hidden="true" />
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-28 pb-16 md:px-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-12 lg:pt-36 lg:pb-24">
+      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-10 px-4 pt-28 pb-16 md:px-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-12 lg:pt-36 lg:pb-24">
         <div className="max-w-[40rem]">
           <h1 id="hero-title" className="text-title font-extrabold tracking-[-0.015em] text-white md:text-display">
             {title}
@@ -212,7 +212,7 @@ export function Hero() {
                       alone: t.result.chartAlone,
                       alive: t.result.chartAlive,
                       runsOut: f(t.result.chartRunsOut, { age: num(locale, a.q.soloRunoutAge, 0) }),
-                      aliveAt: f(t.result.chartAliveAt, { chance: pct(locale, aliveAtRunout ?? 0) }),
+                      aliveAt: f(a.who === 'me' ? t.result.chartAliveAtMe : a.who === 'father' ? t.result.chartAliveAtHe : t.result.chartAliveAt, { chance: pct(locale, aliveAtRunout ?? 0) }),
                       summary: f(t.result.chartSummary, { age: num(locale, a.q.soloRunoutAge, 0) }),
                     }}
                   />

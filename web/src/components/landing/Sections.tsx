@@ -160,7 +160,7 @@ export function Footer({ t }: { t: Dict }) {
   const repo = process.env.NEXT_PUBLIC_REPO_URL;
   return (
     <footer className="dusk bg-night text-foreground">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 md:grid-cols-[1fr_1.4fr] md:px-8">
+      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-10 px-4 py-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:px-8">
         <div className="space-y-4">
           <Wordmark />
           <p className="max-w-[40ch] text-caption text-mist">{t.footer.disclaimer}</p>

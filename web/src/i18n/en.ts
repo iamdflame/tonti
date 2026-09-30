@@ -85,6 +85,8 @@ export const en = {
     chartAge: 'Age {age}',
     chartRunsOut: 'Saved alone, it runs out at {age}',
     chartAliveAt: '{chance} chance she is still alive then',
+    chartAliveAtHe: '{chance} chance he is still alive then',
+    chartAliveAtMe: '{chance} chance you are still alive then',
     chartSummary: 'From the pool, income continues for life. Saved alone, it stops at {age}.',
   },
   lights: {

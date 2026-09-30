@@ -87,6 +87,8 @@ export const fil = {
     chartAge: 'Edad {age}',
     chartRunsOut: 'Kung mag-isa, mauubos ito sa edad na {age}',
     chartAliveAt: '{chance} na tsansang buhay pa siya noon',
+    chartAliveAtHe: '{chance} na tsansang buhay pa siya noon',
+    chartAliveAtMe: '{chance} na tsansang buhay ka pa noon',
     chartSummary: 'Mula sa pool, tuloy ang kita habambuhay. Kung mag-isa, titigil ito sa edad na {age}.',
   },
   lights: {

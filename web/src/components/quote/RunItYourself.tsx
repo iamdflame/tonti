@@ -36,7 +36,7 @@ export function RunItYourself({ call, p50Raw }: { call: { to: Address; data: Hex
   };
 
   return (
-    <details className="group rounded-xl bg-bay/60 ring-1 ring-white/10 open:bg-bay/80">
+    <details className="group min-w-0 rounded-xl bg-bay/60 ring-1 ring-white/10 open:bg-bay/80">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-body font-bold text-foreground marker:hidden">
         {t.result.runIt}
         <span aria-hidden="true" className="text-mist transition-transform duration-200 group-open:rotate-45">+</span>
