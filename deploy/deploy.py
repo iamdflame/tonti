@@ -9,7 +9,8 @@ that stops for lack of gas simply resumes when the wallet is topped up):
               Actuary version is retired: moved to `retired` in deployment.json)
   mortality   load mortality cohorts, country by country (--countries, in priority order)
   seal        freeze the mortality tables for good (after this no owner can change them)
-  core        deploy the TontiPool, Treasury, LifeRegistry, AttestedIdentity and wire them
+  core        deploy the TontiPool, Treasury, LifeRegistry, AttestedIdentity and wire them (a core
+              built on an older Actuary is retired with it)
   handover    deploy the 48-hour TimelockController (the deployer proposes, anyone executes),
               make the deployer guardian (pause only), and hand every contract to the timelock.
   status      print what's deployed and the wallet's balance
@@ -45,6 +46,7 @@ ENV = {**os.environ, 'CARGO_TARGET_DIR': str(target_dir()), 'CARGO_INCREMENTAL':
        'FOUNDRY_OUT': '/dev/shm/arbit-target/forge-out', 'FOUNDRY_CACHE_PATH': '/dev/shm/arbit-target/forge-cache'}
 ZERO = '0x0000000000000000000000000000000000000000'
 ACTUARY_VERSION = 3  # 3: Ghana added (13 countries); 2: sealed, fee, bounds
+CORE_KEYS = ('pool', 'poolActuary', 'treasury', 'lifeRegistry', 'attestedIdentity', 'timelock', 'governance', 'deployBlock')
 
 
 def load_key(path):
@@ -228,8 +230,16 @@ class Deployer:
         usdg = c['tokens']['USDG']['address']
         if not s.get('sealed'):
             sys.exit('seal the Actuary\'s mortality first (phase: seal)')
+        # A pool's Actuary is fixed at init, so a new Actuary needs a new core. The old one stays
+        # on-chain with the Actuary it was built on (a record from before `poolActuary` was kept
+        # belongs to the Actuary retired last).
+        if 'pool' in s and s.get('poolActuary') != s['actuary'] and self.call(s['pool'], 'owner()(address)')[0].lower() != ZERO:
+            home = next((r for r in s.get('retired', []) if r.get('actuary') == s.get('poolActuary')), None) or s['retired'][-1]
+            home.update({k: s.pop(k) for k in CORE_KEYS if k in s})
+            self.save()
         if 'pool' not in s:
             self.need(0.0008, 'the TontiPool deployment')
+            s['deployBlock'] = int(self.cast('block-number').strip())  # event scans start here
             s['pool'] = self.stylus_deploy('TontiPool', 'pool-stylus')
             self.save()
         if 'treasury' not in s:
@@ -247,6 +257,8 @@ class Deployer:
             s['attestedIdentity'] = self.forge_create('AttestedIdentity', 'src/AttestedIdentity.sol:AttestedIdentity', s['attester'], s['lifeRegistry'])
             self.save()
         if self.call(s['pool'], 'owner()(address)')[0].lower() == ZERO:
+            s['poolActuary'] = s['actuary']
+            self.save()
             self.send('TontiPool.init', s['pool'], 'init(address,address,address,address)', s['treasury'], s['lifeRegistry'], s['actuary'], usdg)
         for name in ('pool', 'treasury', 'lifeRegistry'):
             self.owned(name, s[name])
