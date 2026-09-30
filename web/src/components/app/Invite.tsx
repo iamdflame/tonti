@@ -6,11 +6,12 @@ import { memberIdFromLogs, type JoinInput } from '@/sdk/client.ts';
 import type { Iso3 } from '@/sdk/units.ts';
 import { useI18n } from '@/i18n/client';
 import { coreLive } from '@/lib/chain';
-import { createLifeKey, passkeysAvailable } from '@/lib/passkey';
+import { createLifeKey, passkeyFailure, passkeysAvailable } from '@/lib/passkey';
 import { canSponsor, deviceSender } from '@/lib/wallet/senders';
 import { app } from '@/lib/app-chain';
 import { Notice } from '@/components/Notice';
 import { AddressInput, Card, Page, Primary, Secondary, b64, reason } from './ui';
+import { OpenInBrowser, useInApp } from './InApp';
 
 type Inv = { v: 1; c: Iso3; s: 'f' | 'm'; b: number; a: number; e: 0 | 1; q: number; n: string; g: Address };
 
@@ -23,6 +24,9 @@ export function Invite() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [memberId, setMemberId] = useState<bigint | null>(null);
+  const [keyErr, setKeyErr] = useState<string | null>(null);
+  // Invites travel by Messenger and WhatsApp, which open links in their own browsers.
+  const inApp = useInApp();
 
   useEffect(() => {
     const x = b64.dec<Inv>(window.location.hash.slice(1));
@@ -74,6 +78,7 @@ export function Invite() {
         </Card>
       ) : (
         <>
+          {inApp !== null && !key && <OpenInBrowser app={inApp} />}
           <Card>
             <div className="space-y-4">
               <h2 className="text-heading font-bold">1. {t.invite.step1}</h2>
@@ -85,17 +90,19 @@ export function Invite() {
               ) : (
                 <Primary busy={busy} onClick={async () => {
                   setBusy(true);
-                  setErr(null);
+                  setKeyErr(null);
                   try {
                     const k = await createLifeKey('Tonti');
                     setKey({ qx: k.qx, qy: k.qy });
                   } catch (e) {
-                    setErr(reason(e));
+                    const why = passkeyFailure(e);
+                    setKeyErr(why === 'blocked' ? t.join.keyBlocked : why === 'cancelled' ? t.join.keyCancelled : f(t.app.failed, { detail: reason(e) }));
                   } finally {
                     setBusy(false);
                   }
                 }} className="min-h-16 text-heading">{t.invite.step1Button}</Primary>
               )}
+              {keyErr && !key && <p role="alert" className="text-body text-danger">{keyErr}</p>}
             </div>
           </Card>
           <Card locked={!key}>

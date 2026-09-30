@@ -8,6 +8,36 @@ const b64url = (b: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new 
 
 export const passkeysAvailable = () => typeof window !== 'undefined' && !!window.PublicKeyCredential && !!navigator.credentials;
 
+const IN_APP: [RegExp, string][] = [
+  [/MetaMask/i, 'MetaMask'], [/CoinbaseWallet|CoinbaseBrowser/i, 'Coinbase Wallet'], [/Trust\//i, 'Trust Wallet'], [/OKApp/i, 'OKX'],
+  [/BitKeep|Bitget/i, 'Bitget'], [/TokenPocket/i, 'TokenPocket'], [/Phantom/i, 'Phantom'], [/Rainbow/i, 'Rainbow'],
+  [/MicroMessenger/i, 'WeChat'], [/FBAN|FBAV|FB_IAB/i, 'Facebook'], [/Instagram/i, 'Instagram'], [/\bLine\//i, 'LINE'],
+  [/Telegram/i, 'Telegram'], [/musical_ly|Bytedance|TikTok/i, 'TikTok'], [/Snapchat/i, 'Snapchat'],
+];
+
+/** The app whose built-in browser this is ('' when it can't be named), or null in a real browser.
+ * On a phone these web views can't make or use passkeys for other sites: iOS lets an embedded web
+ * view use WebAuthn only for its own app's domains, and Android web views mostly lack it. The call
+ * exists and is refused, so this has to be known before she taps. */
+export function inAppBrowser(): string | null {
+  if (typeof window === 'undefined') return null;
+  const ua = navigator.userAgent;
+  for (const [re, name] of IN_APP) if (re.test(ua)) return name;
+  const w = window as unknown as { ReactNativeWebView?: unknown; ethereum?: { isMetaMask?: boolean } };
+  if (w.ReactNativeWebView) return w.ethereum?.isMetaMask ? 'MetaMask' : '';
+  if (/iPhone|iPad|iPod/.test(ua) && !/Safari\//.test(ua)) return '';
+  if (/Android/.test(ua) && /; wv\)/.test(ua)) return '';
+  return null;
+}
+
+/** Why a passkey call failed: the browser refused it, or she cancelled (or it timed out). */
+export function passkeyFailure(e: unknown): 'blocked' | 'cancelled' | null {
+  const name = (e as { name?: string })?.name;
+  if (name === 'SecurityError' || (name === 'NotAllowedError' && inAppBrowser() !== null)) return 'blocked';
+  if (name === 'NotAllowedError' || name === 'AbortError') return 'cancelled';
+  return null;
+}
+
 /** Creates the life key (ES256 only: the registry verifies P-256). */
 export async function createLifeKey(label: string): Promise<{ qx: Hex; qy: Hex; credentialId: string }> {
   const cred = (await navigator.credentials.create({

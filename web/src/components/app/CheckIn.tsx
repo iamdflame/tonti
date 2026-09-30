@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import { coreLive, dep } from '@/lib/chain';
 import { date as fmtDate } from '@/lib/format';
-import { signCheckIn, passkeysAvailable } from '@/lib/passkey';
+import { signCheckIn, passkeyFailure, passkeysAvailable } from '@/lib/passkey';
+import { OpenInBrowser, useInApp } from './InApp';
 import { canSponsor } from '@/lib/wallet/sponsor';
 import { Notice } from '@/components/Notice';
 import { Card, Page, Primary, b64, reason } from './ui';
@@ -18,6 +19,7 @@ export function CheckIn({ id }: { id: bigint | null }) {
   const [done, setDone] = useState<Date | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [relay, setRelay] = useState<string | null>(null);
+  const inApp = useInApp();
 
   const load = useCallback(async () => {
     if (id === null || !coreLive) return setInfo('none');
@@ -62,7 +64,8 @@ export function CheckIn({ id }: { id: bigint | null }) {
         setRelay(`${window.location.origin}/${locale}/relay#${b64.enc(payload)}`);
       }
     } catch (e) {
-      setErr(reason(e));
+      const why = passkeyFailure(e);
+      setErr(why === 'blocked' ? t.checkin.blocked : why === 'cancelled' ? t.checkin.cancelled : f(t.app.failed, { detail: reason(e) }));
     } finally {
       setBusy(false);
     }
@@ -82,6 +85,7 @@ export function CheckIn({ id }: { id: bigint | null }) {
           {info.recovery && !done && !closed && <Notice kind="hold">{f(t.checkin.recovery, { date: fmtDate(locale, info.recovery) })}</Notice>}
           {!closed && info.held && <Notice kind="hold">{t.checkin.identityLapsed}</Notice>}
           {!closed && !info.held && info.identityBy && <p className="text-body text-ink-2">{f(t.checkin.identityDue, { date: fmtDate(locale, info.identityBy) })}</p>}
+          {!closed && !done && !relay && inApp !== null && <OpenInBrowser app={inApp} use />}
           {!closed && !done && !relay && (
             passkeysAvailable() ? (
               <Primary busy={busy} onClick={checkIn} className="min-h-20 text-heading">{busy ? t.checkin.signing : t.checkin.button}</Primary>
@@ -95,7 +99,7 @@ export function CheckIn({ id }: { id: bigint | null }) {
               <Primary onClick={() => (navigator.share ? navigator.share({ url: relay }).catch(() => undefined) : navigator.clipboard.writeText(relay))}>{t.checkin.relay}</Primary>
             </div>
           )}
-          {err && <p role="alert" className="text-body text-danger">{f(t.app.failed, { detail: err })}</p>}
+          {err && <p role="alert" className="text-body text-danger">{err}</p>}
           <a download="tonti-check-in.ics" href={ics(info.due, `${window.location.origin}/${locale}/checkin/${id}`)} className="inline-flex min-h-12 items-center text-body underline underline-offset-4">{t.checkin.calendar}</a>
         </div>
       </Card>

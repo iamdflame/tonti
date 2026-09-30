@@ -8,13 +8,14 @@ import type { Iso3, Sex } from '@/sdk/units.ts';
 import { useI18n } from '@/i18n/client';
 import { coreLive } from '@/lib/chain';
 import { countryName } from '@/lib/format';
-import { createLifeKey, passkeysAvailable } from '@/lib/passkey';
+import { createLifeKey, passkeyFailure, passkeysAvailable } from '@/lib/passkey';
 import { app, FROM_BLOCK } from '@/lib/app-chain';
 import { Notice } from '@/components/Notice';
 import { AddressInput, Card, Label, Page, Primary, Secondary, b64, reason } from './ui';
 import { Account } from './Account';
 import { PayIn } from './PayIn';
 import { useWallet } from './Wallet';
+import { OpenInBrowser, useInApp } from './InApp';
 
 type Who = 'mother' | 'father' | 'me';
 type Step = 'plan' | 'account' | 'key' | 'people' | 'confirm' | 'done' | 'invite' | 'waiting';
@@ -40,6 +41,8 @@ export function Join() {
   const [guardians, setGuardians] = useState(['', '', '']);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [keyErr, setKeyErr] = useState<string | null>(null);
+  const inApp = useInApp();
   const [memberId, setMemberId] = useState<bigint | null>(null);
   const [name, setName] = useState('');
   const [herLang, setHerLang] = useState<'fil' | 'en'>('fil');
@@ -53,6 +56,9 @@ export function Join() {
     if (c && countries.some((x) => x.iso3 === c)) setCountry(c as Iso3);
     if (p.get('b')) setBorn(Number(p.get('b')));
     if (p.get('a')) setStartAge(Number(p.get('a')));
+    if (p.get('e') === '1') setEscalating(true);
+    const q = Number(p.get('q'));
+    if ((BEQUEST as readonly number[]).includes(q)) setBeta(q);
   }, []);
   useEffect(() => {
     if (w.sender && !payout) setPayout(w.sender.address);
@@ -113,6 +119,8 @@ export function Join() {
     }
   };
 
+  const planLink = () => `${window.location.origin}/${locale}/join?w=me&s=${sex === 'male' ? 'm' : 'f'}&c=${country}&b=${born}&a=${startAge}&e=${escalating ? 1 : 0}&q=${beta}`;
+
   const steps: Step[] = who === 'me' ? ['plan', 'account', 'key', 'people', 'confirm'] : ['plan', 'account', 'invite'];
   const at = steps.indexOf(step);
   const stepName: Record<Step, string> = { plan: t.join.stepPlan, account: t.join.stepAccount, key: t.join.stepKey, people: t.join.stepPeople, confirm: t.join.stepConfirm, invite: t.join.stepInvite, waiting: t.join.stepInvite, done: t.join.stepConfirm };
@@ -132,6 +140,8 @@ export function Join() {
           ))}
         </ol>
       )}
+
+      {who === 'me' && inApp !== null && !key && (step === 'plan' || step === 'account' || step === 'key') && <OpenInBrowser app={inApp} url={planLink()} wallet />}
 
       {step === 'plan' && (
         <Card>
@@ -230,18 +240,20 @@ export function Join() {
               <p className="text-body font-bold text-ok">✓ {t.join.lifeKeyDone}</p>
             ) : (
               <Primary busy={busy} onClick={async () => {
-                setErr(null);
+                setKeyErr(null);
                 setBusy(true);
                 try {
                   const k = await createLifeKey('Tonti life key');
                   setKey({ qx: k.qx, qy: k.qy });
                 } catch (e) {
-                  setErr(reason(e));
+                  const why = passkeyFailure(e);
+                  setKeyErr(why === 'blocked' ? t.join.keyBlocked : why === 'cancelled' ? t.join.keyCancelled : f(t.app.failed, { detail: reason(e) }));
                 } finally {
                   setBusy(false);
                 }
               }}>{t.join.lifeKeyButton}</Primary>
             )}
+            {keyErr && !key && <p role="alert" className="text-body text-danger">{keyErr}</p>}
             <div className="flex gap-3">
               <Secondary onClick={back}>{t.app.back}</Secondary>
               <Primary onClick={next} disabled={!key}>{t.app.next}</Primary>
