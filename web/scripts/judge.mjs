@@ -23,7 +23,7 @@ const abi = parseAbi([
   'function quote(uint256 key, uint256 age, uint256 year, uint256 startAge, uint256 lumpSum, uint256 monthly, uint32 paths, bool escalating) view returns (uint256[8])',
   'function qMonth(uint256 key, uint256 age, uint256 year) view returns (uint256)',
 ]);
-const ISO = { PHL: 608, IDN: 360, IND: 356, BGD: 50, MMR: 104, LKA: 144, NPL: 524, VNM: 704, THA: 764, MYS: 458, CHN: 156, SGP: 702 };
+const ISO = { PHL: 608, IDN: 360, IND: 356, BGD: 50, MMR: 104, LKA: 144, NPL: 524, VNM: 704, THA: 764, MYS: 458, CHN: 156, SGP: 702, GHA: 288 };
 const YEAR = new Date().getUTCFullYear();
 const rnd = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -115,11 +115,11 @@ const out = { base: BASE, at: new Date().toISOString(), quotes: [], routes: [], 
   const block = BigInt((how.match(/block ([\d,]+)/)?.[1] ?? '0').replace(/,/g, ''));
   const born = YEAR - 65;
   const names = new Intl.DisplayNames(['en-SG'], { type: 'region' });
-  const ISO2 = { PHL: 'PH', IDN: 'ID', IND: 'IN', BGD: 'BD', MMR: 'MM', LKA: 'LK', NPL: 'NP', VNM: 'VN', THA: 'TH', MYS: 'MY', CHN: 'CN', SGP: 'SG' };
+  const ISO2 = { PHL: 'PH', IDN: 'ID', IND: 'IN', BGD: 'BD', MMR: 'MM', LKA: 'LK', NPL: 'NP', VNM: 'VN', THA: 'TH', MYS: 'MY', CHN: 'CN', SGP: 'SG', GHA: 'GH' };
   const { actuary } = JSON.parse(readFileSync(new URL('../src/sdk/deployment.json', import.meta.url), 'utf8'));
   const checks = [];
   let stateAt = 'the page block';
-  for (const iso of ['PHL', 'SGP', 'BGD']) {
+  for (const iso of ['PHL', 'SGP', 'GHA']) {
     const want = [];
     for (const male of [0, 1]) {
       let alive = 1;

@@ -64,7 +64,7 @@ def main():
 
 NAMES = {'BGD': 'Bangladesh', 'CHN': 'China', 'IDN': 'Indonesia', 'IND': 'India', 'LKA': 'Sri Lanka', 'MMR': 'Myanmar',
          'MYS': 'Malaysia', 'NPL': 'Nepal', 'PAK': 'Pakistan', 'PHL': 'Philippines', 'SGP': 'Singapore', 'THA': 'Thailand',
-         'VNM': 'Viet Nam', 'USA': 'United States'}
+         'VNM': 'Viet Nam', 'USA': 'United States', 'GHA': 'Ghana'}
 
 
 def countries():

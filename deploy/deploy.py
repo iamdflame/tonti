@@ -40,11 +40,11 @@ RPC = os.environ.get('ROBINHOOD_RPC', os.environ.get('RPC', 'https://rpc.mainnet
 CFG = json.loads((ROOT / 'config' / 'robinhood-mainnet.json').read_text())
 STATE = Path(os.environ.get('DEPLOYMENT_OUT', ROOT / 'config' / 'deployment.json'))
 LOG = RUNS / 'artifacts' / 'deploy-log.jsonl'
-PRIORITY = ['PHL', 'IDN', 'IND', 'BGD', 'MMR', 'LKA', 'NPL', 'VNM', 'THA', 'MYS', 'CHN', 'SGP']
+PRIORITY = ['PHL', 'IDN', 'IND', 'BGD', 'MMR', 'LKA', 'NPL', 'VNM', 'THA', 'MYS', 'CHN', 'SGP', 'GHA']
 ENV = {**os.environ, 'CARGO_TARGET_DIR': str(target_dir()), 'CARGO_INCREMENTAL': '0',
        'FOUNDRY_OUT': '/dev/shm/arbit-target/forge-out', 'FOUNDRY_CACHE_PATH': '/dev/shm/arbit-target/forge-cache'}
 ZERO = '0x0000000000000000000000000000000000000000'
-ACTUARY_VERSION = 2
+ACTUARY_VERSION = 3  # 3: Ghana added (13 countries); 2: sealed, fee, bounds
 
 
 def load_key(path):

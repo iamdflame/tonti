@@ -25,7 +25,7 @@ const YEAR = new Date().getUTCFullYear();
 const today = () => new Date(Math.floor(Date.now() / 86_400_000) * 86_400_000);
 
 // ISO 3166 alpha-2 (the proxy's `cc` cookie, from Vercel's geolocation) to the Actuary's alpha-3.
-const FROM_ISO2: Record<string, Iso3> = { PH: 'PHL', ID: 'IDN', IN: 'IND', BD: 'BGD', MM: 'MMR', LK: 'LKA', NP: 'NPL', VN: 'VNM', TH: 'THA', MY: 'MYS', CN: 'CHN' };
+const FROM_ISO2: Record<string, Iso3> = { PH: 'PHL', ID: 'IDN', IN: 'IND', BD: 'BGD', MM: 'MMR', LK: 'LKA', NP: 'NPL', VN: 'VNM', TH: 'THA', MY: 'MYS', CN: 'CHN', GH: 'GHA' };
 
 export function Hero() {
   const { t, f, locale } = useI18n();

@@ -20,7 +20,7 @@ q.soloOutliveProbability;   // ≈ 0.49 …and this is the chance she's still al
 
 | | |
 |---|---|
-| `countries` | The 12 countries the Actuary prices, with the birth years fitted (1935–2005), for the frontend's pickers. |
+| `countries` | The 13 countries the Actuary prices, with the birth years fitted (1935–2005), for the frontend's pickers. |
 | `quote` | Human units in and out: dollars, ages, probabilities. |
 | `join`, then the identity check, then `contribute` | `join` returns the new member id. The operator checks the member's document and signs with `bin/attest.ts`, and `strongProof` submits it (`identified` turns true). Only then does `contribute` accept money, approving USDG to the pool if needed; anyone may pay for anyone. No money goes in that couldn't come out. |
 | `claim`, `requestExit`, `cancelExit`, `exit`, `claimable` | The member's money: income, notice, exit, estates. |

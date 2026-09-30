@@ -18,7 +18,7 @@ export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 /** Each fitted country's currency, where the ECB publishes a rate (others show dollars only). */
 export const CURRENCY: Record<string, string | undefined> = { PHL: 'PHP', IDN: 'IDR', IND: 'INR', MYS: 'MYR', THA: 'THB', CHN: 'CNY', SGP: 'SGD' };
 
-const ISO2: Record<string, string> = { PHL: 'PH', IDN: 'ID', IND: 'IN', BGD: 'BD', MMR: 'MM', LKA: 'LK', NPL: 'NP', VNM: 'VN', THA: 'TH', MYS: 'MY', CHN: 'CN', SGP: 'SG' };
+const ISO2: Record<string, string> = { PHL: 'PH', IDN: 'ID', IND: 'IN', BGD: 'BD', MMR: 'MM', LKA: 'LK', NPL: 'NP', VNM: 'VN', THA: 'TH', MYS: 'MY', CHN: 'CN', SGP: 'SG', GHA: 'GH' };
 const names = new Map<Locale, Intl.DisplayNames>();
 /** A fitted country's name in the reader's language (Pilipinas, not Philippines, on /fil). */
 export const countryName = (locale: Locale, iso3: string, fallback: string) => {
