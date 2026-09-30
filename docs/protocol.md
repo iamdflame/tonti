@@ -44,13 +44,13 @@ S(x, y, τ) = exp( −A·τ − B·e^{θx − κ(y−2024)} · (e^{(θ−κ)τ} 
 
   | Annuity factor from | Worst error | 95th percentile | Median |
   |---|---|---|---|
-  | the start ages (50–80, or the cohort's own age), 7,680 pairs | **1.35%** | 0.60% | 0.16% |
-  | 85 | 1.30% | 0.77% | 0.28% |
-  | 90 | 1.70% | 1.10% | 0.25% |
-  | 95 | 3.74% | 2.07% | 0.46% |
+  | the start ages (50–80, or the cohort's own age), 8,320 pairs | **1.35%** | 0.62% | 0.16% |
+  | 85 | 1.30% | 0.78% | 0.29% |
+  | 90 | 1.72% | 1.27% | 0.27% |
+  | 95 | 3.74% | 2.24% | 0.52% |
 
   - History: the first version fitted `ln m_x` only and was checked from each cohort's age in 2026; it reported 0.66% but was up to 3.09% from the start ages (review 1). The second targeted the start ages only: 1.13% there, but 2.2%, 4.7% and 7.3% from 85, 90 and 95 (review 2). Weighting the later ages cost 0.2 points at the start ages and halved the error beyond.
-  - survival errors are largest for Singapore women past 90 (0.054), where Gompertz misfits the mortality plateau.
+  - survival errors are largest for Singapore women past 90 (0.053), where Gompertz misfits the mortality plateau.
 - **Sealed.** Once every country is loaded, `Actuary.seal()` makes the tables permanent: no owner, the timelock included, can change them. New tables mean a new Actuary and a new pool.
 - **The 1-month death probability** used in settlement is `q_k(t) = 1 − S(x_k(t), y(t), 1/12)`.
 

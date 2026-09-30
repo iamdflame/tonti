@@ -35,6 +35,9 @@ def main():
     live = load('mainnet-quote.json') or {}
     muts, fit, ghost, judge = load('mutations-pool.json') or {}, load('mortality-validation.json') or {}, load('ghost-detector.json') or {}, load('judge.json') or {}
     rmuts = load('mutations-registry.json') or {}
+    params = json.loads((ROOT / 'config' / 'mortality.json').read_text())['params'].values()
+    groups = len({(p['iso3'], p['sex']) for p in params})
+    countries = len({p['iso3'] for p in params})
     power = {round(r['hidden'], 1): r for r in ghost.get('power', [])}
     honest = power.get(0.0, {}).get('flagged_36m')
     half = power.get(0.5, {}).get('flagged_24m')
@@ -75,7 +78,7 @@ A member (or their child, from a Singapore wage) pays USDG in. The pool invests 
 |---|---|---|---|
 {chr(10).join(rows)}
 
-Mortality loaded for: {', '.join(dep.get('countries', []))} ({len(dep.get('batches', []))} of 24 country-sex groups).
+Mortality loaded for: {', '.join(dep.get('countries', []))} ({len(dep.get('batches', []))} of {groups} country-sex groups).
 Governance: {'every contract is owned by the 48-hour timelock' if dep.get('governance') == 'timelock-48h' else 'owned by the deployer until the timelock handover'}.
 
 ## Technical execution (measured, not claimed)
@@ -86,7 +89,7 @@ Governance: {'every contract is owned by the 48-hour timelock' if dep.get('gover
 - **Fair credits in small pools:** a finite-pool correction we derived cuts the bias from {f100.get('uncorrected_rms_bias', 0):.1%} to {f100.get('rms_bias', 0):.2%} RMS at 100 members, and to {f10k.get('rms_bias', 0):.3%} at 10,000. {f10k.get('ledger_checks', 0) + f100.get('ledger_checks', 0):,} survivor credits were matched to the ledger exactly.
 - **The dead are never paid, the living never killed:** a passkey check-in every 90 days (verified by the chain's P-256 precompile); a death report has 120 days to be answered by the member's own proof; any death can be undone within five years, and the member's money goes back into their own account from a revival reserve (as far as it goes; the rest stays owed and is repaid as it refills). There is no reward for reporting, and a reported death's estate is held for a year, so a false report can't pay anyone. A lost phone is recovered only after 120 days that the member's own check-in can cancel.
 - **Hidden deaths:** a ghost-member detector (Wald's SPRT, compared against deaths expected five months earlier) runs inside every settlement: {'n/a' if honest is None else f'{honest:.1%}'} of honest groups flagged within three years, {'n/a' if half is None else f'{half:.0%}'} of groups hiding half their deaths within two. Passkey ghosts are presumed dead after 800 days without an identity proof.
-- **Mortality:** 1,704 cohorts fitted to UN WPP 2024 and {'sealed on-chain' if dep.get('sealed') else 'ready to load (the live v1 Actuary holds an older fit; the relaunch loads and seals this one)'}; worst annuity-factor error {fit.get('worst_abs_annuity_error', 0):.2%} from the ages income starts, {later.get('90', {}).get('worst', 0):.2%} from 90.
+- **Mortality:** {len(params):,} cohorts ({countries} countries) fitted to UN WPP 2024 and {'sealed on-chain' if dep.get('sealed') else 'ready to load (the live v1 Actuary holds an older fit; the relaunch loads and seals this one)'}; worst annuity-factor error {fit.get('worst_abs_annuity_error', 0):.2%} from the ages income starts, {later.get('90', {}).get('worst', 0):.2%} from 90.
 - **Tests that can fail:** 68 Rust, 45 Solidity (10 against live mainnet state) and 6 TypeScript tests against the real contracts on anvil. Deliberately planted bugs caught: {muts.get('killed', '?')} of {muts.get('total', '?')} in the pool, {rmuts.get('killed', '?')} of {rmuts.get('total', '?')} in the LifeRegistry. Four independent adversarial reviews; every finding is fixed or disclosed, and listed in `.claude/uncomparable.md`.
 - **The site, judged on its public URL** (`web/scripts/judge.mjs`, https://tonti-life.vercel.app): {js.get('quotes', 'n/a')}; {js.get('routes', 'n/a')}; axe: {js.get('axe', 'n/a')}; a passkey made with Chrome's virtual authenticator.
 
