@@ -1,7 +1,7 @@
 {
- "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
+ "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
  "chainId": 4663,
- "quote_clock": 1790553600,
+ "quote_clock": 1790726400,
  "people": {
   "maria": {
    "label": "Maria: 36, from the Philippines, a domestic worker in Singapore; $50 a month until 60",
@@ -15,23 +15,23 @@
      "monthly_usd": 50,
      "escalating": false
     },
-    "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
-    "at": 1790553600,
-    "seconds": 1.05,
-    "gas": 13001370,
+    "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+    "at": 1790726400,
+    "seconds": 1.23,
+    "gas": 13011166,
     "paths": 512,
     "income_start": [
-     104.869683,
-     147.236873,
-     208.892756
+     107.766947,
+     148.315759,
+     216.697964
     ],
     "income_at_85": [
-     99.673572,
-     160.571024,
-     261.412055
+     104.262121,
+     164.295829,
+     268.789596
     ],
     "solo_runout_age": 82.5,
-    "solo_outlive_probability": 0.47956324554082586
+    "solo_outlive_probability": 0.4694964347142737
    },
    "escalating": {
     "input": {
@@ -43,23 +43,23 @@
      "monthly_usd": 50,
      "escalating": true
     },
-    "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
-    "at": 1790553600,
-    "seconds": 1.04,
-    "gas": 13500324,
+    "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+    "at": 1790726400,
+    "seconds": 1.19,
+    "gas": 13489119,
     "paths": 512,
     "income_start": [
-     87.412645,
-     123.045277,
-     172.071379
+     86.232305,
+     119.509562,
+     174.619727
     ],
     "income_at_85": [
-     141.21484,
-     216.999777,
-     354.999959
+     135.887627,
+     210.41031,
+     350.155497
     ],
-    "solo_runout_age": 93.41666666666667,
-    "solo_outlive_probability": 0.17389605866527724
+    "solo_runout_age": 93.5,
+    "solo_outlive_probability": 0.1730726817813508
    }
   },
   "mother": {
@@ -74,23 +74,23 @@
      "monthly_usd": 30,
      "escalating": false
     },
-    "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
-    "at": 1790553600,
-    "seconds": 0.96,
-    "gas": 9523724,
+    "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+    "at": 1790726400,
+    "seconds": 1.29,
+    "gas": 9534376,
     "paths": 512,
     "income_start": [
-     23.040805,
-     25.415505,
-     28.002228
+     23.020002,
+     25.293291,
+     28.041719
     ],
     "income_at_85": [
-     20.328485,
-     27.133693,
-     37.278386
+     20.039258,
+     27.882574,
+     39.228815
     ],
-    "solo_runout_age": 80.25,
-    "solo_outlive_probability": 0.4924854643522812
+    "solo_runout_age": 80.41666666666667,
+    "solo_outlive_probability": 0.4821658899096255
    },
    "escalating": {
     "input": {
@@ -102,23 +102,23 @@
      "monthly_usd": 30,
      "escalating": true
     },
-    "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
-    "at": 1790553600,
-    "seconds": 1.08,
-    "gas": 9790817,
+    "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+    "at": 1790726400,
+    "seconds": 1.11,
+    "gas": 9815954,
     "paths": 512,
     "income_start": [
-     19.122994,
-     20.856515,
-     22.989257
+     19.154378,
+     20.849255,
+     23.23566
     ],
     "income_at_85": [
-     26.221028,
-     35.263681,
-     48.243255
+     25.487943,
+     35.898975,
+     48.624725
     ],
-    "solo_runout_age": 86.66666666666667,
-    "solo_outlive_probability": 0.2572735603938854
+    "solo_runout_age": 87.16666666666667,
+    "solo_outlive_probability": 0.25162472232656213
    }
   },
   "rahim": {
@@ -133,23 +133,23 @@
      "monthly_usd": 40,
      "escalating": false
     },
-    "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
-    "at": 1790553600,
-    "seconds": 1.11,
-    "gas": 12455551,
+    "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+    "at": 1790726400,
+    "seconds": 0.93,
+    "gas": 12471395,
     "paths": 512,
     "income_start": [
-     59.154481,
-     78.177586,
-     106.023703
+     58.869566,
+     76.99414,
+     105.233104
     ],
     "income_at_85": [
-     54.30401,
-     87.11301,
-     132.637811
+     56.896581,
+     87.789602,
+     133.015116
     ],
-    "solo_runout_age": 85.41666666666667,
-    "solo_outlive_probability": 0.4636880980052207
+    "solo_runout_age": 85.75,
+    "solo_outlive_probability": 0.45065066746442495
    },
    "escalating": {
     "input": {
@@ -161,23 +161,23 @@
      "monthly_usd": 40,
      "escalating": true
     },
-    "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
-    "at": 1790553600,
-    "seconds": 0.99,
-    "gas": 13079361,
+    "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+    "at": 1790726400,
+    "seconds": 1.21,
+    "gas": 13064289,
     "paths": 512,
     "income_start": [
-     46.167166,
-     61.119731,
-     81.931628
+     47.509468,
+     62.856135,
+     82.542156
     ],
     "income_at_85": [
-     73.603288,
-     110.543981,
-     168.762757
+     74.795067,
+     111.488779,
+     168.047853
     ],
-    "solo_runout_age": 101.91666666666667,
-    "solo_outlive_probability": 0.12643472129414335
+    "solo_runout_age": 101.66666666666667,
+    "solo_outlive_probability": 0.12419435598355903
    }
   }
  }

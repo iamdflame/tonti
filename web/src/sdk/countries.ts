@@ -21,6 +21,15 @@ export const countries = [
     ]
   },
   {
+    "iso3": "GHA",
+    "isoNumeric": 288,
+    "name": "Ghana",
+    "birthYears": [
+      1935,
+      2005
+    ]
+  },
+  {
     "iso3": "IDN",
     "isoNumeric": 360,
     "name": "Indonesia",
