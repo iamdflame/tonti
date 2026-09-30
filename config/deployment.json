@@ -52,10 +52,70 @@
     "SGP-male"
    ],
    "version": 1
+  },
+  {
+   "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
+   "market": {
+    "spy_return": 0.06,
+    "spy_vol": 0.16,
+    "safe_rate": 0.035,
+    "valuation_rate": 0.035,
+    "pool_fee": 0.003
+   },
+   "countries": [
+    "PHL",
+    "IDN",
+    "IND",
+    "BGD",
+    "MMR",
+    "LKA",
+    "NPL",
+    "VNM",
+    "THA",
+    "MYS",
+    "CHN",
+    "SGP"
+   ],
+   "batches": [
+    "PHL-female",
+    "PHL-male",
+    "IDN-female",
+    "IDN-male",
+    "IND-female",
+    "IND-male",
+    "BGD-female",
+    "BGD-male",
+    "MMR-female",
+    "MMR-male",
+    "LKA-female",
+    "LKA-male",
+    "NPL-female",
+    "NPL-male",
+    "VNM-female",
+    "VNM-male",
+    "THA-female",
+    "THA-male",
+    "MYS-female",
+    "MYS-male",
+    "CHN-female",
+    "CHN-male",
+    "SGP-female",
+    "SGP-male"
+   ],
+   "sealed": true,
+   "version": 2,
+   "pool": "0x28eb67dc702e8809f34b769d4cb8a06c913dee40",
+   "treasury": "0x97Fc9Ab76384c17F80C3C8194a4743929c4e0553",
+   "lifeRegistry": "0x8b5Dd3af2668A19a6b86BB57Af669457651031c0",
+   "attestedIdentity": "0x2F22629339a4B6c645015Fc0434823Db188AAC28",
+   "timelock": "0x8D10F019d7694987031262c0Bcf86c9Dc9deED89",
+   "governance": "timelock-48h",
+   "deployBlock": 74510636
   }
  ],
- "actuary": "0x275a29977166dafb866b2985753e9ef2679bf762",
- "actuaryVersion": 2,
+ "attester": "0xf910fC2fD395128A894e9754bE56479F05b54121",
+ "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+ "actuaryVersion": 3,
  "market": {
   "spy_return": 0.06,
   "spy_vol": 0.16,
@@ -75,7 +135,8 @@
   "THA",
   "MYS",
   "CHN",
-  "SGP"
+  "SGP",
+  "GHA"
  ],
  "batches": [
   "PHL-female",
@@ -101,15 +162,17 @@
   "CHN-female",
   "CHN-male",
   "SGP-female",
-  "SGP-male"
+  "SGP-male",
+  "GHA-female",
+  "GHA-male"
  ],
  "sealed": true,
- "pool": "0x28eb67dc702e8809f34b769d4cb8a06c913dee40",
- "treasury": "0x97Fc9Ab76384c17F80C3C8194a4743929c4e0553",
- "lifeRegistry": "0x8b5Dd3af2668A19a6b86BB57Af669457651031c0",
- "attester": "0xf910fC2fD395128A894e9754bE56479F05b54121",
- "attestedIdentity": "0x2F22629339a4B6c645015Fc0434823Db188AAC28",
- "timelock": "0x8D10F019d7694987031262c0Bcf86c9Dc9deED89",
- "governance": "timelock-48h",
- "deployBlock": 74510636
+ "deployBlock": 76631644,
+ "pool": "0xfde46333804f2ea5167bdb7f8f7408ab0cee6308",
+ "treasury": "0xb1273Eda4380039CaaBDAb79b1Ad756EEf1412Bc",
+ "lifeRegistry": "0x97e1D2f4E7d0B86aa85dc6691EA5cBF7175fC03D",
+ "attestedIdentity": "0xd715390236b1f3c43689D74ab61b34B09E5aa1C7",
+ "poolActuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+ "timelock": "0x5986346B942D30C8Bdc9CB75a4F230140Ce5C504",
+ "governance": "timelock-48h"
 }
