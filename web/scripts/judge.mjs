@@ -55,7 +55,9 @@ const out = { base: BASE, at: new Date().toISOString(), quotes: [], routes: [], 
     const l = pick([0, 500, 1000, 3000, 7500, 20000, 120000]);
     const m = pick([0, 25, 50, 150, 400]) || (l ? 0 : 50);
     const ask = { who, sex: male ? 'male' : 'female', country: c, born: b, startAge: a, lump: l, monthly: m };
-    const page = await ctx.newPage();
+    // Each quote is a new visitor: nothing cached from the one before.
+    const visit = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const page = await visit.newPage();
     const calls = [];
     page.on('request', (r) => {
       if (r.method() !== 'POST' || !r.url().includes('rpc')) return;
@@ -81,7 +83,17 @@ const out = { base: BASE, at: new Date().toISOString(), quotes: [], routes: [], 
       const raw = decodeFunctionResult({ abi, functionName: 'quote', data: await rpc('eth_call', [{ to: q.to, data: q.data }, 'latest']) });
       row.node = usd(Number(raw[1]) / 1e6);
       row.same = row.node === row.shown;
-      row.ok = row.same && row.encodesInputs;
+      // Opened, "Run it yourself" must stay inside a phone's width (a 600-character `cast call`
+      // once widened the whole column), and the chart speaks of the person asked about.
+      await page.locator('#ask summary').first().click();
+      await page.waitForTimeout(250);
+      row.wider = await page.evaluate(() => [...document.querySelectorAll('#ask *')].filter((e) => {
+        const r = e.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.right > window.innerWidth + 1 && getComputedStyle(e).position !== 'absolute';
+      }).length);
+      const footer = await page.locator('#ask').getByText(/still alive then/).first().textContent().catch(() => '');
+      row.pronoun = { mother: /she is/, father: /he is/, me: /you are/ }[who].test(footer ?? '');
+      row.ok = row.same && row.encodesInputs && row.wider === 0 && row.pronoun;
     } catch (e) {
       row.ok = false;
       row.error = String(e.message ?? e).slice(0, 300);
@@ -90,7 +102,7 @@ const out = { base: BASE, at: new Date().toISOString(), quotes: [], routes: [], 
     }
     out.quotes.push(row);
     console.log(`quote ${i + 1}/${N}`, row.ok ? 'ok' : 'FAIL', JSON.stringify(ask), row.shown ?? '', row.ms ?? '', row.error ?? '');
-    await page.close();
+    await visit.close();
   }
   // Edge: a birth year the Actuary has no mortality for is refused before any call, with the reason.
   {
@@ -211,12 +223,42 @@ for (const width of [320, 375, 768, 1440]) {
   console.log('passkey', JSON.stringify(out.passkey));
   await ctx.close();
 }
+// ---------------------------------------------------------------- in-app browsers
+// A wallet's or a social app's browser can't make a passkey on a phone: the page must say so before
+// anyone taps, with the link to open elsewhere; Chrome itself must not see the notice.
+{
+  const UA = {
+    metamask: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MetaMaskMobile',
+    messenger: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/22F76 [FBAN/MessengerForiOS;FBAV/500.0]',
+  };
+  const invite = Buffer.from(JSON.stringify({ v: 1, c: 'GHA', s: 'f', b: 1962, a: 65, e: 0, q: 0, n: 'Ama', g: '0x1CD2B147EfE092c3BdE0B474bCE3Bd33ae3dbB37' })).toString('base64url');
+  const cases = [
+    ['metamask', `/en/join?w=me&s=m&c=GHA&b=1990&a=65`, true],
+    ['messenger', `/fil/i#${invite}`, true],
+    [null, `/en/join?w=me&s=m&c=GHA&b=1990&a=65`, false],
+  ];
+  out.inApp = [];
+  for (const [ua, path, want] of cases) {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, ...(ua ? { userAgent: UA[ua] } : {}) });
+    const page = await ctx.newPage();
+    await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(300);
+    const shown = await page.getByText(/Open this page in Safari or Chrome|Buksan ang pahinang ito sa Safari o Chrome/).first().isVisible().catch(() => false);
+    const link = shown ? (await page.locator('.select-all').first().textContent().catch(() => '')) : '';
+    const keepsPlan = !shown || (path.includes('#') ? link.includes('#') : /c=GHA/.test(link) && /s=m/.test(link));
+    out.inApp.push({ ua: ua ?? 'chrome', path: path.split('#')[0], shown, keepsPlan, ok: shown === want && keepsPlan });
+    await ctx.close();
+  }
+  console.log('in-app', JSON.stringify(out.inApp));
+}
+
 await browser.close();
 
 const ok = out.quotes.filter((q) => q.ok);
 const ms = out.quotes.filter((q) => q.ms).map((q) => q.ms);
 out.summary = {
-  quotes: `${ok.length}/${out.quotes.length} equal a direct eth_call and encode the inputs asked`,
+  quotes: `${ok.length}/${out.quotes.length} equal a direct eth_call, encode the inputs asked, fit a phone with the call open and name the right person`,
+  inApp: `${out.inApp.filter((x) => x.ok).length}/${out.inApp.length} in-app browser cases right (MetaMask, Messenger say so and keep the plan; Chrome doesn't)`,
   edge: out.edge?.ok ? 'unfitted birth year refused with its reason' : 'FAILED',
   latencyMs: { p50: pctl(ms, 0.5), p95: pctl(ms, 0.95), max: Math.max(...ms) },
   odds: out.odds ? `${out.odds.checks.filter((c) => c.same).length}/${out.odds.checks.length} rows equal direct qMonth reads at block ${out.odds.block}` : null,
