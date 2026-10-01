@@ -101,6 +101,7 @@ export function Me() {
                 <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.me.state}</dt><dd className="text-right">{t.me.statuses[r.status]}</dd></div>
                 {!closed && r.nextCheckIn && <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.checkin.title}</dt><dd className="text-right">{f(t.me.nextCheckIn, { date: fmtDate(locale, r.nextCheckIn) })}</dd></div>}
                 <div>{r.m.valueLive ? f(t.me.value, { amount: usd(locale, r.m.valueDollars) }) : f(t.me.valueStale, { amount: usd(locale, r.m.valueDollars), date: fmtDate(locale, r.m.valuedAt) })}</div>
+                {r.m.pendingDollars > 0 && <div>{f(t.me.pending, { amount: usd(locale, r.m.pendingDollars) })}</div>}
                 {r.m.owedDollars > 0 && <div className="font-bold">{f(t.me.owed, { amount: usd(locale, r.m.owedDollars) })}</div>}
               </dl>
               {!closed && !r.identified && (

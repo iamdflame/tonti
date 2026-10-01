@@ -184,6 +184,7 @@ export const fil = {
     addressInvalid: 'Hindi iyan wallet address: nagsisimula ito sa 0x at may 42 na karakter.',
   },
   join: {
+    capReached: 'Naabot mo na ang maximum ng research preview ({cap}).',
     sexHint: 'Gaya ng nasa ID mo: ito ang batayan ng mortality rates ng kita mo, at dapat itong tumugma sa pagsuri ng ID.',
     sexRow: 'Kasarian',
     onChain: 'Tingnan sa chain',
@@ -309,6 +310,7 @@ export const fil = {
     checkedIn: 'Nakapag-check in na.',
   },
   me: {
+    pending: 'Naihulog ang {amount}; ipupuhunan ito sa susunod na buwanang settlement.',
     statuses: { none: 'Hindi naka-enroll', active: 'Naka-check in', due: 'Kailangang mag-check in', lapsed: 'Lampas na ang check-in: naka-hold ang kita', deathReported: 'May iniulat na pagkamatay', deceased: 'Pumanaw na', presumedDeceased: 'Ipinapalagay na pumanaw' },
     nextCheckIn: 'Susunod na check-in hanggang {date}',
     identityHow: 'Susunod: isang maikling video call para suriin ang ID mo. Kapag nakumpirma na ito ng operator sa chain, puwede ka nang magbayad dito.',

@@ -59,6 +59,8 @@ export function PayIn({ memberId }: { memberId: bigint }) {
         <p className="text-caption text-ink-2">{t.join.payInHint} {f(t.join.ofTotal, { paid: usd(locale, paid), cap: usd(locale, PREVIEW_CAP_USDG, 0) })}</p>
         {identified === false ? (
           <p className="text-body">{t.join.notIdentified}</p>
+        ) : room <= 0 ? (
+          <p className="text-body">{f(t.join.capReached, { cap: usd(locale, PREVIEW_CAP_USDG, 0) })}</p>
         ) : (
           <>
             <div>

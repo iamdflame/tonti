@@ -182,6 +182,7 @@ export const en = {
     addressInvalid: 'That isn’t a wallet address: it starts with 0x and has 42 characters.',
   },
   join: {
+    capReached: 'You’ve paid in the research preview’s maximum ({cap}).',
     sexHint: 'As on your ID: it sets the mortality rates your income is priced on, and the identity check must match it.',
     sexRow: 'Sex',
     onChain: 'See it on the chain',
@@ -307,6 +308,7 @@ export const en = {
     checkedIn: 'Checked in.',
   },
   me: {
+    pending: '{amount} paid in, waiting to be invested at the next monthly settlement.',
     statuses: { none: 'Not enrolled', active: 'Checked in', due: 'Check-in due', lapsed: 'Check-in overdue: income on hold', deathReported: 'A death was reported', deceased: 'Deceased', presumedDeceased: 'Presumed deceased' },
     nextCheckIn: 'Next check-in by {date}',
     identityHow: 'Next: a short video call to check your ID. Once the operator confirms it on the chain, you can pay in here.',
