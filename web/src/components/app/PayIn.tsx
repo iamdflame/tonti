@@ -5,8 +5,8 @@ import { erc20Abi } from 'viem';
 import { useI18n } from '@/i18n/client';
 import { dep } from '@/lib/chain';
 import { app, pub, PREVIEW_CAP_USDG, RELAY_USDG } from '@/lib/app-chain';
-import { usd } from '@/lib/format';
-import { Card, Label, Primary, reason } from './ui';
+import { short, usd } from '@/lib/format';
+import { Card, Label, Primary, noGas, reason } from './ui';
 import { useWallet } from './Wallet';
 
 /** Paying in, once the member's identity is checked: USDG approve and contribute in one go. */
@@ -46,7 +46,7 @@ export function PayIn({ memberId }: { memberId: bigint }) {
       await w.sender!.send(app.calls.contribute(memberId, amount));
       setMsg({ ok: true, text: f(t.join.paidIn, { amount: usd(locale, amount) }) });
     } catch (e) {
-      setMsg({ ok: false, text: f(t.app.failed, { detail: reason(e) }) });
+      setMsg({ ok: false, text: f(t.app.failed, { detail: noGas(e) ? f(t.app.noGasFor, { address: short(w.sender!.address) }) : reason(e) }) });
     } finally {
       setBusy(false);
     }

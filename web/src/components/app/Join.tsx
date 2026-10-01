@@ -7,11 +7,11 @@ import { memberIdFromLogs, type JoinInput } from '@/sdk/client.ts';
 import type { Iso3, Sex } from '@/sdk/units.ts';
 import { useI18n } from '@/i18n/client';
 import { coreLive } from '@/lib/chain';
-import { countryName } from '@/lib/format';
+import { countryName, short } from '@/lib/format';
 import { createLifeKey, passkeyFailure, passkeysAvailable } from '@/lib/passkey';
 import { app, FROM_BLOCK } from '@/lib/app-chain';
 import { Notice } from '@/components/Notice';
-import { AddressInput, Card, Label, Page, Primary, Secondary, b64, reason } from './ui';
+import { AddressInput, Card, Label, Page, Primary, Secondary, b64, noGas, reason } from './ui';
 import { Account } from './Account';
 import { PayIn } from './PayIn';
 import { useWallet } from './Wallet';
@@ -113,7 +113,7 @@ export function Join() {
       setMemberId(memberIdFromLogs(mined.flatMap((m) => m.logs)));
       setStep('done');
     } catch (e) {
-      setErr(reason(e));
+      setErr(noGas(e) ? f(t.app.noGasFor, { address: short(w.sender!.address) }) : reason(e));
     } finally {
       setBusy(false);
     }
@@ -294,7 +294,7 @@ export function Join() {
               <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.join.plan}</dt><dd>{escalating ? t.join.rising : t.join.level}</dd></div>
               <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.join.bequest}</dt><dd className="font-mono">{beta / 100}%</dd></div>
             </dl>
-            <p className="text-caption text-ink-2">{w.sender?.gasless ? t.app.gasless : t.app.paysGas}</p>
+            <Account />
             {err && <p role="alert" className="text-body text-danger">{f(t.app.failed, { detail: err })}</p>}
             <div className="flex gap-3">
               <Secondary onClick={back}>{t.app.back}</Secondary>

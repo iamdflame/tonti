@@ -76,6 +76,14 @@ export const b64 = {
 };
 
 /** Reverts come back as the contract's own error names; show those, not a stack. */
+/** The sender can't pay the network fee (viem's InsufficientFundsError, or a node's or wallet's words). */
+export function noGas(e: unknown): boolean {
+  for (let x = e as { name?: string; message?: string; cause?: unknown } | undefined, i = 0; x && i < 8; x = x.cause as typeof x, i++) {
+    if (x.name === 'InsufficientFundsError' || /insufficient funds|exceeds the balance of the account/i.test(x.message ?? '')) return true;
+  }
+  return false;
+}
+
 export function reason(e: unknown): string {
   const m = (e as { shortMessage?: string; message?: string })?.shortMessage ?? (e as Error)?.message ?? String(e);
   const named = /reverted with the following reason:\s*(.+)|Error: (\w+)\(\)|error (\w+)/i.exec(m);
