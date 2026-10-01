@@ -88,6 +88,12 @@ Deployed 2026-09-30 from block 76,631,644, every contract owned by the 48-hour t
   - `config/deployment.json` keeps both under `retired`.
 - **Verification:** the Solidity sources are verified on [Sourcify](https://repo.sourcify.dev/4663/). Sourcify doesn't verify Stylus WASM, so the two Stylus contracts are verified the Stylus way: build `engine/` with `TONTI_DEPLOYER=0xf910fC2fD395128A894e9754bE56479F05b54121` and compare the activated code hash.
 - **Cost:** the Ghana relaunch cost 0.00436 ETH, 0.00304 of it for loading mortality (26 batches of about 5.25M gas each).
+- **The first member and the first settlement (2026-10-01).** Member #0 is the builder (not an outside user), joining from an iPhone with MetaMask.
+  - **Joined:** Ghana, born 1976, income from 65, level (tx `0xb5dd…2a40`).
+  - **Checked in:** with Face ID; the registry verified the passkey's P-256 signature on mainnet.
+  - **Identity check:** passed; the operator's statement matched the cohort key, and the script refuses one that doesn't.
+  - **Paid in:** 25 USDG, about 342k gas for approve and contribute.
+  - **First settlement:** the keeper settled epoch 1 and rebalanced. The 25 USDG became $14.86 of SPY, $7.06 of SGOV and $3.04 of USDG in Morpho: 16.9 bps of trading cost, measured from the holdings at oracle prices. The pool values the member at $24.96.
 
 ## Governance, exactly
 
