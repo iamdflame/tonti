@@ -46,8 +46,9 @@ PAGE = 100         # items per transaction: ink-meter measured the dearest page 
 MAX_PAGES = 500    # per tick, so a stuck run can't loop forever
 
 
-def cast(*args, check=True):
-    r = subprocess.run(['cast', *args, '--rpc-url', RPC], capture_output=True, text=True)
+def cast(*args, check=True, rpc=True):
+    # Offline subcommands (keccak, wallet address) refuse --rpc-url in current Foundry.
+    r = subprocess.run(['cast', *args, *(['--rpc-url', RPC] if rpc else [])], capture_output=True, text=True)
     if check and r.returncode != 0:
         raise RuntimeError(r.stderr.strip()[:300])
     return r
@@ -69,7 +70,7 @@ def log(msg):
 
 def send(pk, to, sig, *args):
     """Dry-run with eth_call first; send only if it succeeds. Returns the tx hash or None."""
-    sim = cast('call', to, sig, *args, '--from', cast('wallet', 'address', '--private-key', pk).stdout.strip(), check=False)
+    sim = cast('call', to, sig, *args, '--from', cast('wallet', 'address', '--private-key', pk, rpc=False).stdout.strip(), check=False)
     if sim.returncode != 0:
         return None
     r = cast('send', to, sig, *args, '--private-key', pk, '--json', check=False)
@@ -84,7 +85,7 @@ def tick(pk, dep, state):
     head = int(cast('block-number').stdout)
     # 1. Deaths made final since the last scan.
     since = state.get('death_scan_from', head - 50_000)
-    topic = cast('keccak', 'Deceased(uint256,uint64,bool)').stdout.strip()
+    topic = cast('keccak', 'Deceased(uint256,uint64,bool)', rpc=False).stdout.strip()
     logs = json.loads(cast('logs', '--from-block', str(since), '--to-block', str(head), '--address', registry, topic, '--json').stdout or '[]')
     for lg in logs:
         member = int(lg['topics'][1], 16)
@@ -96,7 +97,7 @@ def tick(pk, dep, state):
     # Death reports and held bonds: remembered until settled.
     for event, key in (('DeathReported(uint256,address,uint64,bytes32)', 'reports'), ('Revived(uint256,address)', 'revived'),
                        ('RecoveryRequested(uint256,address,uint64,address)', 'recoveries')):
-        t = cast('keccak', event).stdout.strip()
+        t = cast('keccak', event, rpc=False).stdout.strip()
         found = json.loads(cast('logs', '--from-block', str(since), '--to-block', str(head), '--address', registry, t, '--json').stdout or '[]')
         state.setdefault(key, [])
         state[key] = sorted(set(state[key]) | {int(lg['topics'][1], 16) for lg in found})
