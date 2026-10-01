@@ -46,7 +46,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     signIn: () => api?.login(),
     useBrowserWallet,
     signOut: async () => {
-      if (sender?.kind === 'smart' && api) await api.logout();
+      // Out of Privy as well, whichever wallet it gave: otherwise "Sign in" finds the old session and
+      // the same wallet comes back.
+      if (api) await api.logout().catch(() => undefined);
       setSender(null);
     },
     error,

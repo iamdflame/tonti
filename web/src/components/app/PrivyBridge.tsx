@@ -12,7 +12,9 @@ type Props = { appId: string; onSender(s: Sender | null): void; onApi(a: { login
 const CONFIG: PrivyClientConfig = {
   loginMethods: ['passkey', 'sms', 'email', 'google', 'wallet'],
   appearance: { theme: 'light', accentColor: '#14213d', landingHeader: 'Tonti', walletChainType: 'ethereum-only' },
-  embeddedWallets: { ethereum: { createOnLogin: 'all-users' }, showWalletUIs: false },
+  // A wallet only for people who sign in without one (email, phone, Google, passkey): made for
+  // everyone, it was chosen over the MetaMask a member signed in with, and paid gas from nothing.
+  embeddedWallets: { ethereum: { createOnLogin: 'users-without-wallets' }, showWalletUIs: false },
   supportedChains: [robinhood],
   defaultChain: robinhood,
   ...(process.env.NEXT_PUBLIC_WALLETCONNECT_ID ? { walletConnectCloudProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID } : {}),
@@ -39,8 +41,12 @@ function Sync({ onSender, onApi }: Omit<Props, 'appId'>) {
   useEffect(() => {
     onApi({ login: () => fns.current.login(), logout: () => fns.current.logout(), ready });
   }, [ready, onApi]);
-  // The wallets array is a new object on every render: key the effect on who the wallet is.
-  const chosen = useMemo(() => wallets.find((w) => w.walletClientType === 'privy') ?? wallets[0], [wallets]);
+  // The wallet she signed in with (it holds her money) before an embedded one. The wallets array is
+  // a new object on every render: key the effect on who the wallet is.
+  const chosen = useMemo(() => {
+    const external = wallets.filter((w) => w.walletClientType !== 'privy');
+    return external.find((w) => w.linked) ?? wallets.find((w) => w.walletClientType === 'privy') ?? external[0];
+  }, [wallets]);
   const id = authenticated && chosen ? `${chosen.walletClientType}:${chosen.address}` : '';
   const wallet = useRef(chosen);
   wallet.current = chosen;
