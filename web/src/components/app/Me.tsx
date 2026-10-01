@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Address } from 'viem';
 import { useI18n } from '@/i18n/client';
-import { coreLive } from '@/lib/chain';
+import { coreLive, dep } from '@/lib/chain';
 import { date as fmtDate, usd } from '@/lib/format';
-import { app, FROM_BLOCK } from '@/lib/app-chain';
+import { app, FROM_BLOCK, pub } from '@/lib/app-chain';
+import { lifeRegistryAbi } from '@/sdk/abi.ts';
 import { Notice } from '@/components/Notice';
 import { Card, Page, Primary, Secondary, reason } from './ui';
 import { Account } from './Account';
@@ -19,6 +20,7 @@ type Row = Awaited<ReturnType<typeof app.accountsOf>>[number] & {
   held: Awaited<ReturnType<typeof app.held>>;
   report: Awaited<ReturnType<typeof app.report>>;
   payout: Address;
+  nextCheckIn: Date | null;
 };
 
 /** Every account a wallet is part of, found from the chain's own logs, with what it can do now. */
@@ -33,13 +35,13 @@ export function Me() {
   const load = useCallback(async () => {
     if (!w.sender || !coreLive) return;
     const me = w.sender.address;
-    const [accts, owedToMe] = await Promise.all([app.accountsOf(me, FROM_BLOCK), app.claimable(me)]);
+    const [accts, owedToMe, period] = await Promise.all([app.accountsOf(me, FROM_BLOCK), app.claimable(me), pub.readContract({ address: dep.lifeRegistry!, abi: lifeRegistryAbi, functionName: 'checkInPeriod' })]);
     setClaimable(owedToMe);
     setRows(
       await Promise.all(
         accts.map(async (a) => {
           const [m, status, identified, held, report, life] = await Promise.all([app.member(a.memberId), app.status(a.memberId), app.identified(a.memberId), app.held(a.memberId), app.report(a.memberId), app.life(a.memberId)]);
-          return { ...a, m, status, identified, held, report, payout: life.payout };
+          return { ...a, m, status, identified, held, report, payout: life.payout, nextCheckIn: life.lastProof ? new Date((Number(life.lastProof) + Number(period)) * 1000) : null };
         }),
       ),
     );
@@ -96,10 +98,19 @@ export function Me() {
               </ul>
               <dl className="grid gap-1 text-body">
                 <div className="flex justify-between gap-4"><dt className="text-ink-2">{f(t.me.startsAt, { age: r.m.startAge })}</dt><dd>{r.m.escalating ? t.join.rising : t.join.level}</dd></div>
-                <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.me.state}</dt><dd>{r.status}</dd></div>
+                <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.me.state}</dt><dd className="text-right">{t.me.statuses[r.status]}</dd></div>
+                {!closed && r.nextCheckIn && <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.checkin.title}</dt><dd className="text-right">{f(t.me.nextCheckIn, { date: fmtDate(locale, r.nextCheckIn) })}</dd></div>}
                 <div>{r.m.valueLive ? f(t.me.value, { amount: usd(locale, r.m.valueDollars) }) : f(t.me.valueStale, { amount: usd(locale, r.m.valueDollars), date: fmtDate(locale, r.m.valuedAt) })}</div>
                 {r.m.owedDollars > 0 && <div className="font-bold">{f(t.me.owed, { amount: usd(locale, r.m.owedDollars) })}</div>}
               </dl>
+              {!closed && !r.identified && (
+                <Notice>
+                  {t.me.identityHow}
+                  {process.env.NEXT_PUBLIC_OPERATOR_CONTACT && (
+                    <a href={process.env.NEXT_PUBLIC_OPERATOR_CONTACT} className="mt-2 block font-bold underline underline-offset-4">{t.join.identityContact}</a>
+                  )}
+                </Notice>
+              )}
               {r.report && <p role="alert" className="rounded-xl bg-danger/10 p-3 text-body text-danger">{f(t.me.reported, { date: fmtDate(locale, r.report.answerBy) })}</p>}
               {r.held.renewBy && <Notice kind="hold">{f(t.me.held, { date: fmtDate(locale, r.held.renewBy) })}</Notice>}
               <div className="flex flex-wrap gap-2">

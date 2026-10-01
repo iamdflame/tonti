@@ -6,12 +6,14 @@ import { countries } from '@/sdk/countries.ts';
 import { memberIdFromLogs, type JoinInput } from '@/sdk/client.ts';
 import type { Iso3, Sex } from '@/sdk/units.ts';
 import { useI18n } from '@/i18n/client';
-import { coreLive } from '@/lib/chain';
-import { countryName, short } from '@/lib/format';
+import { coreLive, dep, explorer } from '@/lib/chain';
+import { countryName, date as fmtDate, short, usd } from '@/lib/format';
 import { createLifeKey, passkeyFailure, passkeysAvailable } from '@/lib/passkey';
-import { app, FROM_BLOCK } from '@/lib/app-chain';
+import { app, FROM_BLOCK, PREVIEW_CAP_USDG, pub } from '@/lib/app-chain';
+import { lifeRegistryAbi } from '@/sdk/abi.ts';
 import { Notice } from '@/components/Notice';
 import { AddressInput, Card, Label, Page, Primary, Secondary, b64, noGas, reason } from './ui';
+import { Check } from 'lucide-react';
 import { Account } from './Account';
 import { PayIn } from './PayIn';
 import { useWallet } from './Wallet';
@@ -29,7 +31,8 @@ export function Join() {
   const w = useWallet();
   const [step, setStep] = useState<Step>('plan');
   const [who, setWho] = useState<Who>('mother');
-  const [meSex, setMeSex] = useState<Sex>('female');
+  // No default: it prices the plan and the ID check must match it, so it is always chosen.
+  const [meSex, setMeSex] = useState<Sex | null>(null);
   const [country, setCountry] = useState<Iso3>('PHL');
   const [born, setBorn] = useState(1966);
   const [startAge, setStartAge] = useState(62);
@@ -42,8 +45,12 @@ export function Join() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [keyErr, setKeyErr] = useState<string | null>(null);
+  // The plan a link carries is applied after hydration: Continue waits for it (see Hero).
+  const [linked, setLinked] = useState(false);
   const inApp = useInApp();
   const [memberId, setMemberId] = useState<bigint | null>(null);
+  const [joinTx, setJoinTx] = useState<`0x${string}` | null>(null);
+  const [firstCheckIn, setFirstCheckIn] = useState<Date | null>(null);
   const [name, setName] = useState('');
   const [herLang, setHerLang] = useState<'fil' | 'en'>('fil');
 
@@ -51,7 +58,9 @@ export function Join() {
     const p = new URLSearchParams(window.location.search);
     const wq = p.get('w');
     if (wq === 'mother' || wq === 'father' || wq === 'me') setWho(wq);
-    if (p.get('s') === 'm') setMeSex('male');
+    const sq = p.get('s');
+    if (sq === 'm') setMeSex('male');
+    else if (sq === 'f') setMeSex('female');
     const c = p.get('c');
     if (c && countries.some((x) => x.iso3 === c)) setCountry(c as Iso3);
     if (p.get('b')) setBorn(Number(p.get('b')));
@@ -59,13 +68,14 @@ export function Join() {
     if (p.get('e') === '1') setEscalating(true);
     const q = Number(p.get('q'));
     if ((BEQUEST as readonly number[]).includes(q)) setBeta(q);
+    setLinked(true);
   }, []);
   useEffect(() => {
     if (w.sender && !payout) setPayout(w.sender.address);
     if (w.sender && !heir) setHeir(w.sender.address);
   }, [w.sender, payout, heir]);
 
-  const sex: Sex = who === 'mother' ? 'female' : who === 'father' ? 'male' : meSex;
+  const sex: Sex = who === 'mother' ? 'female' : who === 'father' ? 'male' : (meSex ?? 'female');
   const minStart = Math.max(50, Math.ceil(YEAR - born + 0.5));
   const fitted = countries.find((x) => x.iso3 === country)?.birthYears ?? [YEAR - 80, YEAR - 18];
   const joinInput = (): JoinInput => ({
@@ -105,12 +115,25 @@ export function Join() {
     };
   }, [step, w.sender]);
 
+  useEffect(() => {
+    if (step !== 'done' || memberId === null) return;
+    let live = true;
+    (async () => {
+      const [life, period] = await Promise.all([app.life(memberId), pub.readContract({ address: dep.lifeRegistry!, abi: lifeRegistryAbi, functionName: 'checkInPeriod' })]);
+      if (live) setFirstCheckIn(new Date((Number(life.lastProof) + Number(period)) * 1000));
+    })().catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [step, memberId]);
+
   const join = async () => {
     setBusy(true);
     setErr(null);
     try {
       const mined = await w.sender!.send([app.calls.join(joinInput())]);
       setMemberId(memberIdFromLogs(mined.flatMap((m) => m.logs)));
+      setJoinTx(mined.at(-1)?.hash ?? null);
       setStep('done');
     } catch (e) {
       setErr(noGas(e) ? f(t.app.noGasFor, { address: short(w.sender!.address) }) : reason(e));
@@ -119,7 +142,7 @@ export function Join() {
     }
   };
 
-  const planLink = () => `${window.location.origin}/${locale}/join?w=me&s=${sex === 'male' ? 'm' : 'f'}&c=${country}&b=${born}&a=${startAge}&e=${escalating ? 1 : 0}&q=${beta}`;
+  const planLink = () => `${window.location.origin}/${locale}/join?w=me${meSex ? `&s=${meSex[0]}` : ''}&c=${country}&b=${born}&a=${startAge}&e=${escalating ? 1 : 0}&q=${beta}`;
 
   const steps: Step[] = who === 'me' ? ['plan', 'account', 'key', 'people', 'confirm'] : ['plan', 'account', 'invite'];
   const at = steps.indexOf(step);
@@ -160,6 +183,7 @@ export function Join() {
             {who === 'me' && (
               <fieldset>
                 <legend className="mb-2 text-body font-bold">{t.form.sex}</legend>
+                <p className="-mt-1 mb-2 text-caption text-ink-2">{t.join.sexHint}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {(['female', 'male'] as const).map((x) => (
                     <label key={x} className={radio(meSex === x)}>
@@ -212,7 +236,7 @@ export function Join() {
                 ))}
               </div>
             </fieldset>
-            <Primary onClick={next} disabled={born < Math.max(YEAR - 79, fitted[0]) || born > Math.min(YEAR - 18, fitted[1]) || startAge < minStart || startAge > 80}>{t.app.next}</Primary>
+            <Primary onClick={next} disabled={!linked || (who === 'me' && !meSex) || born < Math.max(YEAR - 79, fitted[0]) || born > Math.min(YEAR - 18, fitted[1]) || startAge < minStart || startAge > 80}>{t.app.next}</Primary>
           </div>
         </Card>
       )}
@@ -289,6 +313,7 @@ export function Join() {
             <h2 className="text-heading font-bold">{t.join.confirmTitle}</h2>
             <dl className="grid gap-2 text-body">
               <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.form.countryMe}</dt><dd>{countryName(locale, country, countries.find((c) => c.iso3 === country)?.name ?? country)}</dd></div>
+              <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.join.sexRow}</dt><dd>{sex === 'female' ? t.form.woman : t.form.man}</dd></div>
               <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.form.born}</dt><dd className="font-mono">{born}</dd></div>
               <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.form.startAge}</dt><dd className="font-mono">{startAge}</dd></div>
               <div className="flex justify-between gap-4"><dt className="text-ink-2">{t.join.plan}</dt><dd>{escalating ? t.join.rising : t.join.level}</dd></div>
@@ -343,13 +368,28 @@ export function Join() {
       {step === 'done' && memberId !== null && (
         <>
           <Card>
-            <div className="space-y-3">
-              <p className="text-heading font-bold">{who === 'me' ? f(t.join.joined, { id: String(memberId) }) : f(t.join.herJoined, { id: String(memberId) })}</p>
-              <p className="text-body text-ink-2">{t.join.identityNext}</p>
+            <div className="space-y-5">
+              <div className="space-y-1">
+                <p role="status" className="text-heading font-bold">{who === 'me' ? f(t.join.joined, { id: String(memberId) }) : f(t.join.herJoined, { id: String(memberId) })}</p>
+                {joinTx && <a href={explorer('tx', joinTx)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-body underline underline-offset-4">{t.join.onChain}</a>}
+              </div>
+              {who === 'me' ? (
+                <div className="space-y-3">
+                  <h2 className="text-body-l font-bold">{t.join.nextTitle}</h2>
+                  <ol className="space-y-3 text-body">
+                    <li className="flex gap-3"><Check className="mt-0.5 size-5 shrink-0 text-ok" aria-hidden="true" /><span>{t.join.nextJoined}</span></li>
+                    <li className="flex gap-3"><span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-caption ring-1 ring-ink/30">2</span><span>{t.join.nextIdentity}</span></li>
+                    <li className="flex gap-3"><span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-caption ring-1 ring-ink/30">3</span><span>{f(t.join.nextPayIn, { cap: usd(locale, PREVIEW_CAP_USDG, 0) })}</span></li>
+                    <li className="flex gap-3"><span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-caption ring-1 ring-ink/30">4</span><span>{f(t.join.nextCheckIn, { date: firstCheckIn ? fmtDate(locale, firstCheckIn) : '…' })}</span></li>
+                  </ol>
+                </div>
+              ) : (
+                <p className="text-body text-ink-2">{t.join.identityNext}</p>
+              )}
               {process.env.NEXT_PUBLIC_OPERATOR_CONTACT && (
                 <a href={process.env.NEXT_PUBLIC_OPERATOR_CONTACT} className="press inline-flex min-h-12 items-center rounded-xl px-4 font-bold ring-1 ring-ink/20">{t.join.identityContact}</a>
               )}
-              <a href={`/${locale}/checkin/${memberId}`} className="inline-flex min-h-11 items-center text-body underline underline-offset-4">{t.checkin.title}</a>
+              <a href={`/${locale}/me`} className="press inline-flex min-h-14 w-full items-center justify-center rounded-xl bg-lamp px-5 text-body-l font-extrabold text-ink hover:bg-lamp-soft">{t.join.toAccount}</a>
             </div>
           </Card>
           <PayIn memberId={memberId} />

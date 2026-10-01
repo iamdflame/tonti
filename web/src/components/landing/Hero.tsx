@@ -39,6 +39,9 @@ export function Hero() {
   const [monthly, setMonthly] = useState(30);
   const [state, setState] = useState<State>({ kind: 'idle' });
   const [fx, setFx] = useState<{ rates: Record<string, number>; date: string } | null>(null);
+  // The question a link carries is applied after hydration; until then the button stays off, or a tap
+  // made while the page loads (React replays it) asks the default question instead of the linked one.
+  const [linked, setLinked] = useState(false);
 
   const sex: Sex = who === 'mother' ? 'female' : who === 'father' ? 'male' : meSex;
   const age = YEAR - born;
@@ -63,6 +66,7 @@ export function Hero() {
     const w = p.get('w');
     if (w === 'mother' || w === 'father' || w === 'me') setWho(w);
     if (p.get('s') === 'm') setMeSex('male');
+    else if (p.get('s') === 'f') setMeSex('female');
     const c = p.get('c');
     if (c && countries.some((x) => x.iso3 === c)) setCountry(c as Iso3);
     const n = (k: string) => (p.get(k) !== null && Number.isFinite(Number(p.get(k))) ? Number(p.get(k)) : null);
@@ -71,6 +75,7 @@ export function Hero() {
     // The same caps as typing (and the Actuary's own): a link can't ask for more.
     if (n('l') !== null) setLump(Math.min(Math.max(0, n('l')!), 10_000_000));
     if (n('m') !== null) setMonthly(Math.min(Math.max(0, n('m')!), 100_000));
+    setLinked(true);
   }, []);
 
   const title = who === 'mother' ? t.hero.title : who === 'father' ? t.hero.titleFather : t.hero.titleMe;
@@ -158,7 +163,7 @@ export function Hero() {
               <Money id="lump" label={t.form.lump} value={lump} onChange={setLump} />
               <Money id="monthly" label={t.form.monthly} value={monthly} onChange={setMonthly} hint={t.form.monthlyHint} />
             </div>
-            <button type="submit" disabled={state.kind === 'asking' || born < bornMin || born > bornMax || (lump <= 0 && monthly <= 0)} className="press inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-xl bg-lamp px-5 text-body-l font-extrabold text-ink shadow-[0_8px_30px_-8px_rgba(255,178,63,0.55)] hover:bg-lamp-soft disabled:cursor-wait disabled:opacity-80">
+            <button type="submit" disabled={!linked || state.kind === 'asking' || born < bornMin || born > bornMax || (lump <= 0 && monthly <= 0)} className="press inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-xl bg-lamp px-5 text-body-l font-extrabold text-ink shadow-[0_8px_30px_-8px_rgba(255,178,63,0.55)] hover:bg-lamp-soft disabled:cursor-wait disabled:opacity-80">
               {state.kind === 'asking' ? (
                 <>
                   <Orbit />
