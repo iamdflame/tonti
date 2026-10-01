@@ -275,6 +275,8 @@ export const fil = {
     someone: 'kapamilya mo',
   },
   checkin: {
+    ownWallet: 'Ipadala mula sa wallet ko',
+    signedChoice: 'Napirmahan na ang check-in mo. Ipadala ito mula sa sarili mong wallet (bahagi lang ng isang US cent ang fee), o hayaang ipadala ito ng pamilya mo.',
     identityDue: 'Taunang pagsusuri ng pagkakakilanlan bago ang {date}.',
     identityLapsed: 'Naka-hold ang kita hanggang sa taunang pagsusuri ng pagkakakilanlan mo. Hilingin sa pamilya mo na mag-book nito sa operator.',
     recovery: 'May humiling na ilipat ang account na ito sa bagong telepono at wallet. Mangyayari ito sa {date} maliban kung mag-check in ka bago noon. Kung hindi ikaw iyon, mag-check in ka ngayon: makakansela ang kahilingan.',
@@ -295,6 +297,8 @@ export const fil = {
     deceased: 'Sarado na ang account na ito.',
   },
   relay: {
+    selfTitle: 'Ipadala ang check-in mo',
+    selfBody: 'Pinirmahan ito ng life key mo. Ipadala mula sa wallet mo; bahagi lang ng isang US cent ang network fee.',
     title: 'Tapusin para sa pamilya mo',
     joinBody: 'Ipapadala nito sa Robinhood Chain ang pagsali ng magulang mo. Kasama na rito ang life key at mga pinili nila; ang network fee lang ang babayaran mo.',
     checkinBody: 'Ipapadala nito sa Robinhood Chain ang pirmadong check-in ng magulang mo.',

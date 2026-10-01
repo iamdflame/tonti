@@ -9,12 +9,12 @@ import { Card, Page, Primary, b64, reason } from './ui';
 import { Account } from './Account';
 import { useWallet } from './Wallet';
 
-type Payload = { v: 1; t: 'join'; j: JoinInput } | { v: 1; t: 'checkin'; id: string; auth: Omit<WebAuthnAuth, 'challengeIndex' | 'typeIndex'> & { challengeIndex: string; typeIndex: string } };
+type Payload = { v: 1; t: 'join'; j: JoinInput } | { v: 1; t: 'checkin'; s?: 1; id: string; auth: Omit<WebAuthnAuth, 'challengeIndex' | 'typeIndex'> & { challengeIndex: string; typeIndex: string } };
 
 /** A parent's joining or check-in, finished from a family member's wallet. Both calls are open to
  * anyone: they count only because the parent's own life key signed or registered them. */
 export function Relay() {
-  const { t, f } = useI18n();
+  const { t, f, locale } = useI18n();
   const w = useWallet();
   const [p, setP] = useState<Payload | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
@@ -44,12 +44,16 @@ export function Relay() {
   };
 
   return (
-    <Page title={t.relay.title} lead={p.t === 'join' ? t.relay.joinBody : t.relay.checkinBody}>
+    // `s`: the member sends her own check-in from her own wallet.
+    <Page title={p.t === 'checkin' && p.s ? t.relay.selfTitle : t.relay.title} lead={p.t === 'join' ? t.relay.joinBody : p.s ? t.relay.selfBody : t.relay.checkinBody}>
       <Card>
         <div className="space-y-5">
           <Account />
           {done ? (
-            <p role="status" className="text-heading font-bold text-ok">{done}</p>
+            <div className="space-y-3">
+              <p role="status" className="text-heading font-bold text-ok">{done}</p>
+              <a href={`/${locale}/me`} className="press inline-flex min-h-14 w-full items-center justify-center rounded-xl bg-lamp px-5 text-body-l font-extrabold text-ink hover:bg-lamp-soft">{t.join.toAccount}</a>
+            </div>
           ) : (
             <Primary busy={busy} onClick={send} disabled={!w.sender}>{busy ? t.app.working : t.relay.send}</Primary>
           )}

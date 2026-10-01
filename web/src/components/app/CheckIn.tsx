@@ -8,7 +8,7 @@ import { signCheckIn, passkeyFailure, passkeysAvailable } from '@/lib/passkey';
 import { OpenInBrowser, useInApp } from './InApp';
 import { canSponsor } from '@/lib/wallet/sponsor';
 import { Notice } from '@/components/Notice';
-import { Card, Page, Primary, b64, reason } from './ui';
+import { Card, Page, Primary, Secondary, b64, reason } from './ui';
 
 type Info = { status: string; due: Date; grace: Date; recovery: Date | null; identityBy: Date | null; held: boolean };
 
@@ -18,7 +18,8 @@ export function CheckIn({ id }: { id: bigint | null }) {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<Date | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [relay, setRelay] = useState<string | null>(null);
+  // Without sponsorship the signed check-in is sent from a wallet: hers, or her family's.
+  const [relay, setRelay] = useState<{ self: string; family: string } | null>(null);
   const inApp = useInApp();
 
   const load = useCallback(async () => {
@@ -61,7 +62,8 @@ export function CheckIn({ id }: { id: bigint | null }) {
         setDone(new Date(Date.now() + 90 * 86_400_000));
       } else {
         const payload = { v: 1, t: 'checkin', id: String(id), auth: { ...auth, challengeIndex: String(auth.challengeIndex), typeIndex: String(auth.typeIndex) } };
-        setRelay(`${window.location.origin}/${locale}/relay#${b64.enc(payload)}`);
+        const at = `${window.location.origin}/${locale}/relay#`;
+        setRelay({ self: at + b64.enc({ ...payload, s: 1 }), family: at + b64.enc(payload) });
       }
     } catch (e) {
       const why = passkeyFailure(e);
@@ -95,8 +97,10 @@ export function CheckIn({ id }: { id: bigint | null }) {
           )}
           {relay && (
             <div className="space-y-3">
-              <p className="text-body">{t.checkin.relayHint}</p>
-              <Primary onClick={() => (navigator.share ? navigator.share({ url: relay }).catch(() => undefined) : navigator.clipboard.writeText(relay))}>{t.checkin.relay}</Primary>
+              <p className="text-body">{t.checkin.signedChoice}</p>
+              <a href={relay.self} className="press inline-flex min-h-14 w-full items-center justify-center rounded-xl bg-lamp px-5 text-body-l font-extrabold text-ink hover:bg-lamp-soft">{t.checkin.ownWallet}</a>
+              <Secondary className="w-full" onClick={() => (navigator.share ? navigator.share({ url: relay.family }).catch(() => undefined) : navigator.clipboard.writeText(relay.family))}>{t.checkin.relay}</Secondary>
+              <p className="text-caption text-ink-2">{t.checkin.relayHint}</p>
             </div>
           )}
           {err && <p role="alert" className="text-body text-danger">{err}</p>}

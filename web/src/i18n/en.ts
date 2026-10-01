@@ -273,6 +273,8 @@ export const en = {
     someone: 'your family',
   },
   checkin: {
+    ownWallet: 'Send it from my wallet',
+    signedChoice: 'Your check-in is signed. Send it from your own wallet (the fee is a fraction of a US cent), or let your family send it for you.',
     identityDue: 'Yearly identity check due by {date}.',
     identityLapsed: 'Income is on hold until your yearly identity check. Ask your family to book it with the operator.',
     recovery: 'Someone has asked to move this account to a new phone and wallet. It happens on {date} unless you check in before then. If that wasn’t you, check in now: it cancels the request.',
@@ -293,6 +295,8 @@ export const en = {
     deceased: 'This account is closed.',
   },
   relay: {
+    selfTitle: 'Send your check-in',
+    selfBody: 'It’s signed with your life key. Send it from your wallet; the network fee is a fraction of a US cent.',
     title: 'Finish for your family',
     joinBody: 'This sends your parent’s joining to Robinhood Chain. Their life key and choices are already in it; you only pay the network fee.',
     checkinBody: 'This sends your parent’s signed check-in to Robinhood Chain.',
