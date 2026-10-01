@@ -8,6 +8,8 @@ export const fil = {
       'Alamin kung magkano ang matatanggap ng nanay mo buwan-buwan habang siya ay nabubuhay. Kinukuwenta ito ng Robinhood Chain sa halos isang segundo, at ibinabayad sa USDG habambuhay.',
   },
   nav: {
+    menu: 'Menu',
+    closeMenu: 'Isara ang menu',
     how: 'Paano ito gumagana',
     safe: 'Ligtas ba ito?',
     pool: 'Live na pool',

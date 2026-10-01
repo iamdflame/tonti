@@ -6,6 +6,8 @@ export const en = {
       'Ask how much your mother would get every month for the rest of her life. Robinhood Chain works it out in about a second, then pays it in USDG for as long as she lives.',
   },
   nav: {
+    menu: 'Menu',
+    closeMenu: 'Close the menu',
     how: 'How it works',
     safe: 'Is it safe?',
     pool: 'Live pool',
