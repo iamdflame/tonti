@@ -31,11 +31,18 @@ const pctl = (xs, p) => {
   const s = [...xs].sort((a, b) => a - b);
   return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : null;
 };
+// The judge's own reads: a public node's rate limit (429) is waited out, not counted against the site.
 const rpc = async (method, params) => {
-  const r = await fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) });
-  const j = await r.json();
-  if (j.error) throw new Error(j.error.message);
-  return j.result;
+  for (let tries = 0; ; tries++) {
+    const r = await fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) });
+    if (r.status === 429 && tries < 5) {
+      await new Promise((ok) => setTimeout(ok, 1000 * 2 ** tries));
+      continue;
+    }
+    const j = await r.json();
+    if (j.error) throw new Error(j.error.message);
+    return j.result;
+  }
 };
 const usd = (v) => new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 
@@ -252,12 +259,75 @@ for (const width of [320, 375, 768, 1440]) {
   console.log('in-app', JSON.stringify(out.inApp));
 }
 
+// ---------------------------------------------------------------- after joining
+// Member #0's join, already mined, replayed through the site: a stand-in wallet answers "send" with
+// its hash, so every screen after it reads the real chain. Sex must be chosen (it prices the plan
+// and the ID check must match it); the welcome says what comes next and links to the account; the
+// account shows status in words; a check-in can be sent from the member's own wallet.
+{
+  const ADDR = '0x1CD2B147EfE092c3BdE0B474bCE3Bd33ae3dbB37';
+  const JOIN_TX = '0xb5ddd1965943c8dea83c8069c7853d3c8ae66dd21b520f6f84f7cb073a2e5a40';
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  await ctx.addInitScript(([a, tx, url]) => {
+    const rpc = async (method, params) => (await (await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) })).json()).result;
+    window.ethereum = { request: async ({ method, params }) => method === 'eth_requestAccounts' || method === 'eth_accounts' ? [a] : method === 'wallet_switchEthereumChain' ? null : method === 'eth_chainId' ? '0x1237' : method === 'eth_sendTransaction' ? tx : rpc(method, params ?? []) };
+  }, [ADDR, JOIN_TX, RPC]);
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 160)));
+  const cdp = await ctx.newCDPSession(page);
+  await cdp.send('WebAuthn.enable');
+  await cdp.send('WebAuthn.addVirtualAuthenticator', { options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true } });
+  const r = {};
+  try {
+    await page.goto(`${BASE}/en/join?w=me&c=GHA&b=1976&a=65`, { waitUntil: 'networkidle' });
+    const cont = page.getByRole('button', { name: 'Continue' }).first();
+    r.sexRequired = await cont.isDisabled();
+    await page.locator('label', { hasText: 'A woman' }).click();
+    r.unlockedBySex = !(await cont.isDisabled());
+    await cont.click();
+    await page.getByRole('button', { name: 'Use my own wallet' }).click();
+    await page.getByText(/on Robinhood Chain\./).first().waitFor({ timeout: 20_000 });
+    await cont.click();
+    await page.getByRole('button', { name: 'Create my life key' }).click();
+    await page.getByText(/✓/).first().waitFor({ timeout: 15_000 });
+    await cont.click();
+    await cont.click();
+    r.confirmShowsSex = /Sex\s*A woman/.test(await page.locator('dl').first().innerText());
+    await page.getByRole('button', { name: 'Join Tonti' }).click();
+    await page.getByText('What happens next').waitFor({ timeout: 60_000 });
+    await page.getByText(/first check-in is due by \d/).waitFor({ timeout: 20_000 });
+    const welcome = await page.locator('main').innerText();
+    r.welcome = /member 0/.test(welcome) && /Identity check/.test(welcome) && /Pay in/.test(welcome);
+    await page.getByRole('link', { name: 'Go to your account' }).click();
+    await page.waitForURL(/\/en\/me/);
+    await page.getByRole('button', { name: 'Use my own wallet' }).click();
+    await page.getByText('Member 0').waitFor({ timeout: 30_000 });
+    await page.getByText(/Next check-in by \d/).waitFor({ timeout: 20_000 });
+    const account = await page.locator('main').innerText();
+    r.account = /Status\s*(Checked in|Check-in due)/.test(account) && !/\bactive\b/.test(account);
+    await page.goto(`${BASE}/en/checkin/0`, { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: /Check in with Face ID/ }).click();
+    await page.getByRole('link', { name: 'Send it from my wallet' }).click();
+    await page.getByRole('heading', { name: 'Send your check-in' }).waitFor({ timeout: 30_000 });
+    r.ownWalletCheckIn = await page.getByRole('button', { name: 'Use my own wallet' }).isVisible();
+  } catch (e) {
+    r.error = String(e.message ?? e).slice(0, 300);
+  }
+  r.errors = errors;
+  r.ok = !r.error && !errors.length && r.sexRequired && r.unlockedBySex && r.confirmShowsSex && r.welcome && r.account && r.ownWalletCheckIn;
+  out.afterJoin = r;
+  console.log('after joining', JSON.stringify(r));
+  await ctx.close();
+}
+
 await browser.close();
 
 const ok = out.quotes.filter((q) => q.ok);
 const ms = out.quotes.filter((q) => q.ms).map((q) => q.ms);
 out.summary = {
   quotes: `${ok.length}/${out.quotes.length} equal a direct eth_call, encode the inputs asked, fit a phone with the call open and name the right person`,
+  afterJoin: out.afterJoin?.ok ? 'member #0 replayed: sex chosen and shown, next steps and account link, status in words, check-in sent from own wallet' : 'FAILED',
   inApp: `${out.inApp.filter((x) => x.ok).length}/${out.inApp.length} in-app browser cases right (MetaMask, Messenger say so and keep the plan; Chrome doesn't)`,
   edge: out.edge?.ok ? 'unfitted birth year refused with its reason' : 'FAILED',
   latencyMs: { p50: pctl(ms, 0.5), p95: pctl(ms, 0.95), max: Math.max(...ms) },
