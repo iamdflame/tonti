@@ -1,0 +1,14 @@
+import { Composition } from 'remotion';
+import { Master, One, type MasterProps } from './Master';
+import { SCENES, TOTAL } from './timeline';
+import { FPS, H, W } from './theme';
+
+export const Root = () => (
+  <>
+    <Composition id="Tonti" component={Master} durationInFrames={TOTAL} fps={FPS} width={W} height={H} defaultProps={{ captions: false } as MasterProps} />
+    <Composition id="TontiCaptions" component={Master} durationInFrames={TOTAL} fps={FPS} width={W} height={H} defaultProps={{ captions: true } as MasterProps} />
+    {SCENES.map((s) => (
+      <Composition key={s.id} id={s.id} component={One} durationInFrames={s.frames} fps={FPS} width={W} height={H} defaultProps={{ id: s.id, captions: false } as MasterProps & { id: string }} />
+    ))}
+  </>
+);
