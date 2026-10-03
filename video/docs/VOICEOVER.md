@@ -4,29 +4,40 @@ Everything here is generated from the cut itself (`video/remotion/src/timeline.t
 
 ## 1. The voice (ElevenLabs)
 
-**Model:** Eleven v4 (`eleven_v4`). ElevenLabs lists it as its most expressive model for narration, and it follows audio tags such as `[warmly]`. It does **not** support `<break>` tags: pauses come from the ellipses (…) and full stops already in the lines below.
+### Use **Darian – Warm Grounded Storyteller** (voice ID `gOupLcAkjEnguROwi4oS`)
 
-**Voice:** one warm, mature documentary narrator. In the Voice Library, try:
-- **Search:** "warm documentary narrator", "calm mature narrator", or "storyteller warm".
-- **Filters:** Use case *Narrative & Story* (or *Narration*), Age *Middle-aged* or *Old*.
-- **Choose by ear:** generate the S04 line with your 2–3 favourites and keep the one that sounds like someone you would trust with your mother's money. Calm, unhurried, kind.
+ElevenLabs' own description: "Warm, grounded male baritone. Natural and confident for storytelling and brand reads."
 
-**Settings** (keep them identical for every line):
+**Why Darian.** I measured the official previews of ElevenLabs' new permanent voices:
 
-| Setting | Value |
-|---|---|
-| Stability | **Natural** (about 0.50 if it's a slider). *Creative* drifts between lines; *Robust* goes flat |
-| Similarity | 0.75 |
-| Style exaggeration | 0 to 0.15 (0 if the voice already sounds warm) |
-| Speaker boost | On |
-| Speed | 1.0 (0.95 if the voice is naturally quick) |
-| Output | WAV 48 kHz if your plan allows, otherwise MP3 44.1 kHz 192 kbps |
+| Voice (ID) | Pitch | Pitch range | Brightness | What it suits |
+|---|---|---|---|---|
+| **Darian** (`gOupLcAkjEnguROwi4oS`) | **105 Hz**, the deepest steady voice | 8.6 semitones: steady | 1,528 Hz: warm | a warm, trustworthy story about mothers and money |
+| Wyatt – Seasoned Mentor (`FrS6cKLB1wg4WYgPa9GW`) | 114 Hz | 7.7: the most measured | 1,796 Hz: brighter | backup: older-sounding, "ideal for long-form documentaries" |
+| Florence – Atmospheric Storyteller (`22N9cF8z0o7y23njdyaY`) | 157 Hz (female) | 11.9 | 1,604 Hz: warm | if you want a woman's voice for a film about mothers |
+| Eldrin, Sawyer | 110–111 Hz | 16–19: theatrical | darkest | too dramatic: trailer and noir reads |
+| Caleb, Talia, Elara | 125–176 Hz | | brighter or quicker | crisp product demos, not this story |
+
+- **Permanent.** Darian is one of the new voices ElevenLabs made to replace its old defaults (it replaces "Roger"). The old defaults stop working on 31 December 2026, and accounts made after March 2026 don't have them at all; the new ones can be used for good. Avoid the old voices (Roger, George, Brian, Adam…) and random library voices, which their owners can remove.
+- **Normal price.** It costs credits ×1.
+- **Made for v4.** It is a Professional Voice Clone, and ElevenLabs says those are "fully supported in Eleven v4".
+
+**How to add it:** ElevenLabs → *Voices* → *Explore* (Voice Library) → search **Darian**, and pick the one called "Darian - Warm Grounded Storyteller" → *Add to my voices*. Then in Text to Speech choose Darian and the model **Eleven v4**.
+
+**Settings.** Eleven v4 has **only two**: Stability and Similarity. It has no Speed, Style or Speaker-boost sliders and no SSML, so pace and pauses come from the text itself: the ellipses (…), full stops and audio tags are already in the lines below.
+
+| Setting | Value | Why |
+|---|---|---|
+| Model | **Eleven v4** | ElevenLabs' most expressive model; follows tags like `[warmly]` |
+| Stability | **0.50** | Enough range for `[warmly]` and `[confident]` to land, and steady enough that ten separate lines sound like one narrator. If lines differ too much in tone, raise it to 0.60; if they sound flat, lower it to 0.40 |
+| Similarity | **0.75** | ElevenLabs' recommended setting: clearly Darian, still natural |
+| Output | **WAV** (or MP3 192 kbps) | WAV keeps quality through your edit |
 
 **How to generate:**
-1. Generate **one scene's line at a time**, pasting the *ElevenLabs text* column exactly. It includes the audio tags and the pauses.
-2. Make 2–3 takes per line and keep the best.
+1. Generate **one scene's line at a time**: paste the *ElevenLabs text* exactly, tags and pauses included.
+2. Make 2–3 takes per line and keep the best. Generations vary slightly even with the same settings, which is how you get a better read.
 3. Name them `VO_S01.wav` … `VO_S10.wav`.
-4. Check each take is **no longer than its "fits in" time**. If one runs long, regenerate it at speed 1.05, or send me the files and I'll retime the picture to the voice (section 5).
+4. Each take must be **no longer than its "fits in" time**. v4 has no speed slider, so if one runs long, generate it again (takes vary), or send me the files and I'll retime the picture to the voice (section 5).
 
 **Pronunciation.** The lines are already spelled for speech. If a word still comes out wrong, replace it with the IPA form, written exactly like this, slashes included:
 
