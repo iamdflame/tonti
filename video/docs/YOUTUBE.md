@@ -1,6 +1,6 @@
 # Tonti demo video: YouTube title, description, thumbnail
 
-## Title (88 characters; YouTube allows 100, and search shows about the first 60)
+## Title (89 characters; YouTube allows 100, and search shows about the first 60)
 
 Tonti: Income for Life, Priced On-Chain | Robinhood Chain · Arbitrum Open House Singapore
 
