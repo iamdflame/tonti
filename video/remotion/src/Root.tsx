@@ -1,4 +1,5 @@
 import { Composition } from 'remotion';
+import { ThumbA, ThumbB } from './Thumbnail';
 import { Master, One, type MasterProps } from './Master';
 import { SCENES, TOTAL } from './timeline';
 import { FPS, H, W } from './theme';
@@ -10,5 +11,7 @@ export const Root = () => (
     {SCENES.map((s) => (
       <Composition key={s.id} id={s.id} component={One} durationInFrames={s.frames} fps={FPS} width={W} height={H} defaultProps={{ id: s.id, captions: false } as MasterProps & { id: string }} />
     ))}
+    <Composition id="ThumbA" component={ThumbA} durationInFrames={1} fps={FPS} width={1280} height={720} />
+    <Composition id="ThumbB" component={ThumbB} durationInFrames={1} fps={FPS} width={1280} height={720} />
   </>
 );
