@@ -24,6 +24,8 @@ for (const id of ids) {
   let last = 0;
   await renderMedia({
     composition, serveUrl, codec: 'h264', crf: 14, pixelFormat: 'yuv420p', colorSpace: 'bt709', imageFormat: 'jpeg', jpegQuality: 95,
+    // The video frame cache defaults to ~1.8 GB a thread; this machine has ~2 GB free and goes down when it runs out.
+    offthreadVideoCacheSizeInBytes: 300 * 1024 * 1024, offthreadVideoThreads: 1,
     concurrency: 2, chromiumOptions, inputProps: { ...inputProps, id }, outputLocation: file + '.part.mp4',
     onProgress: ({ progress }) => { if (progress - last >= 0.25) { last = progress; console.log(`${id} ${(progress * 100).toFixed(0)}%`); } },
   });
