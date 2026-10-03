@@ -1,0 +1,67 @@
+{
+ "S10-fil": {
+  "frames": 403,
+  "seconds": 13.43,
+  "marks": {
+   "question": 72,
+   "ask": 167,
+   "answer": 217
+  }
+ },
+ "S4-quote": {
+  "frames": 1074,
+  "seconds": 35.8,
+  "marks": {
+   "question": 54,
+   "form": 137,
+   "ask": 394,
+   "answer": 430,
+   "settled": 580,
+   "chart": 753,
+   "call": 888,
+   "same": 972
+  }
+ },
+ "S7-lights": {
+  "frames": 675,
+  "seconds": 22.5,
+  "marks": {
+   "title": 66,
+   "1965": 170,
+   "1977": 328,
+   "1999": 603
+  }
+ },
+ "S8-checkin": {
+  "frames": 294,
+  "seconds": 9.8,
+  "marks": {
+   "page": 78,
+   "signed": 101,
+   "relay": 204
+  }
+ },
+ "S8-member": {
+  "frames": 1042,
+  "seconds": 34.73,
+  "marks": {
+   "plan": 36,
+   "wallet": 154,
+   "key": 252,
+   "confirm": 382,
+   "join": 514,
+   "welcome": 533,
+   "account": 761
+  }
+ },
+ "S8-pool": {
+  "frames": 576,
+  "seconds": 19.2,
+  "marks": {
+   "top": 96,
+   "money": 248,
+   "odds": 421,
+   "contracts": 576
+  }
+ }
+}

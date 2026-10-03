@@ -1,0 +1,329 @@
+{
+ "pulledAt": 1790897958,
+ "rpc": "https://rpc.mainnet.chain.robinhood.com",
+ "chainId": 4663,
+ "contracts": {
+  "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa",
+  "pool": "0xfde46333804f2ea5167bdb7f8f7408ab0cee6308",
+  "treasury": "0xb1273Eda4380039CaaBDAb79b1Ad756EEf1412Bc",
+  "lifeRegistry": "0x97e1D2f4E7d0B86aa85dc6691EA5cBF7175fC03D",
+  "attestedIdentity": "0xd715390236b1f3c43689D74ab61b34B09E5aa1C7",
+  "timelock": "0x5986346B942D30C8Bdc9CB75a4F230140Ce5C504",
+  "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168"
+ },
+ "deployBlock": 76631644,
+ "block": 77774849,
+ "txs": {
+  "join": {
+   "hash": "0xb5ddd1965943c8dea83c8069c7853d3c8ae66dd21b520f6f84f7cb073a2e5a40",
+   "block": 76971401,
+   "gas": 528838,
+   "status": 1,
+   "from": "0x1cd2b147efe092c3bde0b474bce3bd33ae3dbb37",
+   "time": 1790817100,
+   "logs": [
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0x54cb50cc350aaf5695f439fc8231d5978d3b8e97aa30ba1644d368323479206e"
+    },
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0xc86a110aa1766ba4b859c168a83f6cff38cd5cec05052a5eba292e4604ea2589"
+    },
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0x34676a9916e8af69afdbc4502395ea49368ebf1c07c1ee2fe91ac66c0146dbb8"
+    },
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0x34676a9916e8af69afdbc4502395ea49368ebf1c07c1ee2fe91ac66c0146dbb8"
+    },
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0x34676a9916e8af69afdbc4502395ea49368ebf1c07c1ee2fe91ac66c0146dbb8"
+    },
+    {
+     "address": "0xfde46333804f2ea5167bdb7f8f7408ab0cee6308",
+     "topic0": "0x1bbca731348420ccca09cc2936b9122a2538b61853aaa5ec3008bb7a92fa827f"
+    }
+   ]
+  },
+  "identity": {
+   "hash": "0x8258fe18b6a0327720f56b678db8b61328bac20ee7f9a90b1977e77da1152595",
+   "block": 77020654,
+   "gas": 80756,
+   "status": 1,
+   "from": "0xf910fc2fd395128a894e9754be56479f05b54121",
+   "time": 1790822054,
+   "logs": [
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0xf998876585aa3bf7a7516342128842c1533bd3b97fa08dbbeb01fda301b0d0c7"
+    },
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0x98ea72daaeb155fca834a8f364e23f0f40e5d7e15b4541d99df8eec48d495486"
+    }
+   ]
+  },
+  "deposit": {
+   "hash": "0x26861ca62fe1c8a901905628f5bb915a0f30480496a4668586bea1c482be7b86",
+   "block": 77027394,
+   "gas": 284722,
+   "status": 1,
+   "from": "0x1cd2b147efe092c3bde0b474bce3bd33ae3dbb37",
+   "time": 1790822733,
+   "logs": [
+    {
+     "address": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0xfde46333804f2ea5167bdb7f8f7408ab0cee6308",
+     "topic0": "0xb2ed2e021651f85a4754a44651fc09ac5141bc0329ce4dfe8dd712a5d04a8b39"
+    }
+   ]
+  },
+  "settle": {
+   "hash": "0xb57edd8c01fe2007abb3a9688ae9609fc3e5061bd1a79b519f89d1efff7392a6",
+   "block": 77028985,
+   "gas": 1141703,
+   "status": 1,
+   "from": "0xf910fc2fd395128a894e9754be56479f05b54121",
+   "time": 1790822893,
+   "logs": [
+    {
+     "address": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+     "topic0": "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
+    },
+    {
+     "address": "0xbeeff033f34c046626b8d0a041844c5d1a5409dd",
+     "topic0": "0x4dec04e750ca11537cabcd8a9eab06494de08da3735bc8871cd41250e190bc04"
+    },
+    {
+     "address": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0xbeeff033f34c046626b8d0a041844c5d1a5409dd",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0xbeeff033f34c046626b8d0a041844c5d1a5409dd",
+     "topic0": "0xdcbc1c05240f31ff3ad067ef1ee35ce4997762752e3a095284754544f4c709d7"
+    },
+    {
+     "address": "0xbeeff033f34c046626b8d0a041844c5d1a5409dd",
+     "topic0": "0x4dec04e750ca11537cabcd8a9eab06494de08da3735bc8871cd41250e190bc04"
+    },
+    {
+     "address": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0x2bd3d5965b26b51814ac95127b2b80dd6ccc0fa1",
+     "topic0": "0x7120161a7b3d31251e01294ab351ef15a41b91659a36032e4641bb89b121e321"
+    },
+    {
+     "address": "0x9d53d5e3bd5e8d4cbfa6db1ca238aea02e651010",
+     "topic0": "0x9d9bd501d0657d7dfe415f779a620a62b78bc508ddc0891fbbd8b7ac0f8fce87"
+    },
+    {
+     "address": "0x9d53d5e3bd5e8d4cbfa6db1ca238aea02e651010",
+     "topic0": "0xedf8870433c83823eb071d3df1caa8d008f12f6440918c20d75a3602cda30fe0"
+    },
+    {
+     "address": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0x44abc1d6ccff2696d98890b92e2157af242179c2",
+     "topic0": "0x67bd2993814767565e883edd1e76edf105cdd33766384ca8495e53562e20bea7"
+    },
+    {
+     "address": "0xbeeff033f34c046626b8d0a041844c5d1a5409dd",
+     "topic0": "0x2bc7948a96a066968d2a58aaf46eb0b305aa166b1d1951d2f7ef0919746b8c2a"
+    },
+    {
+     "address": "0xfde46333804f2ea5167bdb7f8f7408ab0cee6308",
+     "topic0": "0xa973b04048409154dba42dd56f3d2787fcfae851d65aa083ef6231bf57e53669"
+    }
+   ]
+  },
+  "rebalance": {
+   "hash": "0x97a8a6c10b18895bdffa1399070b100ed8ca9aa7af21072ca878118a42621bf2",
+   "block": 77029056,
+   "gas": 1164192,
+   "status": 1,
+   "from": "0xf910fc2fd395128a894e9754be56479f05b54121",
+   "time": 1790822900,
+   "logs": [
+    {
+     "address": "0xbeeff033f34c046626b8d0a041844c5d1a5409dd",
+     "topic0": "0x4dec04e750ca11537cabcd8a9eab06494de08da3735bc8871cd41250e190bc04"
+    },
+    {
+     "address": "0xbeeff033f34c046626b8d0a041844c5d1a5409dd",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0xbeeff033f34c046626b8d0a041844c5d1a5409dd",
+     "topic0": "0xfbde797d201c681b91056529119e0b02407c7bb96a4a2c75c01fc9667232c8db"
+    },
+    {
+     "address": "0x8366a39cc670b4001a1121b8f6a443a643e40951",
+     "topic0": "0x40e9cecb9f5f1f1c5b9c97dec2917b7ee92e57ba5563708daca94dd84ad7112f"
+    },
+    {
+     "address": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0x92fd66527192e3e61d4ddd13322aa222de86f9b5",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0x92fd66527192e3e61d4ddd13322aa222de86f9b5",
+     "topic0": "0x37e7f0db430edc9dd31bc66f25f8449353aa0818f503b906747dd8f286cd3802"
+    },
+    {
+     "address": "0xb1273eda4380039caabdab79b1ad756eef1412bc",
+     "topic0": "0x06ccdcddf4c30ba3cf9c2271999ec9e736807932a9eeb08b516850b387302421"
+    },
+    {
+     "address": "0x8366a39cc670b4001a1121b8f6a443a643e40951",
+     "topic0": "0x40e9cecb9f5f1f1c5b9c97dec2917b7ee92e57ba5563708daca94dd84ad7112f"
+    },
+    {
+     "address": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0x117cc2133c37b721f49de2a7a74833232b3b4c0c",
+     "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    },
+    {
+     "address": "0x117cc2133c37b721f49de2a7a74833232b3b4c0c",
+     "topic0": "0x37e7f0db430edc9dd31bc66f25f8449353aa0818f503b906747dd8f286cd3802"
+    },
+    {
+     "address": "0xb1273eda4380039caabdab79b1ad756eef1412bc",
+     "topic0": "0x06ccdcddf4c30ba3cf9c2271999ec9e736807932a9eeb08b516850b387302421"
+    },
+    {
+     "address": "0xfde46333804f2ea5167bdb7f8f7408ab0cee6308",
+     "topic0": "0x6f55209924dba11af5ddabda4999b20d0ce3aa1847c56b67240ed1fc3590c134"
+    }
+   ]
+  }
+ },
+ "checkins": [
+  {
+   "hash": "0x263439747406fc0d7094da44161f4adba5ead0fe20c0529546e75f8f045dd739",
+   "block": 77013976,
+   "gas": 100659,
+   "status": 1,
+   "from": "0x1cd2b147efe092c3bde0b474bce3bd33ae3dbb37",
+   "time": 1790821382,
+   "logs": [
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0xb127afc9de439cf3f9a4ca36c937e585bad474dd590cbbe4fc51ac0bde184dfe"
+    }
+   ]
+  },
+  {
+   "hash": "0xd0ac110d24376520bffc8fb5ade6e7acbf869453611c8d2fd5f5f0466d50aa4c",
+   "block": 77016985,
+   "gas": 83559,
+   "status": 1,
+   "from": "0x1cd2b147efe092c3bde0b474bce3bd33ae3dbb37",
+   "time": 1790821685,
+   "logs": [
+    {
+     "address": "0x97e1d2f4e7d0b86aa85dc6691ea5cbf7175fc03d",
+     "topic0": "0xb127afc9de439cf3f9a4ca36c937e585bad474dd590cbbe4fc51ac0bde184dfe"
+    }
+   ]
+  }
+ ],
+ "pool": {
+  "members": 1,
+  "cohorts": 2,
+  "epoch": 1,
+  "lastSettle": 1790822893,
+  "epochLength": 2629800,
+  "nextSettle": 1793452693
+ },
+ "member0": {
+  "key": 5761976,
+  "identified": true,
+  "lastProof": 1790822054,
+  "nextCheckIn": 1798598054,
+  "country": "GHA",
+  "born": 1976,
+  "sex": "female",
+  "valueUsd": 24.9566
+ },
+ "holdings": {
+  "cash": {
+   "units": 3.011167647910549,
+   "price": 1.008719,
+   "usd": 3.0374
+  },
+  "tbills": {
+   "units": 0.06996550952845765,
+   "price": 100.93231974,
+   "usd": 7.0618
+  },
+  "sp500": {
+   "units": 0.019393853836698272,
+   "price": 766.0888767099999,
+   "usd": 14.8574
+  },
+  "pricedAt": 1790812900,
+  "totalUsd": 24.9566,
+  "costBps": 17.4
+ },
+ "quote": {
+  "example": {
+   "country": "PHL",
+   "sex": "female",
+   "born": 1966,
+   "start_age": 62.0,
+   "lump_usd": 3000.0,
+   "monthly_usd": 30.0,
+   "escalating": false
+  },
+  "gas": 9522244,
+  "seconds": 1.23,
+  "paths": 512,
+  "incomeStart": [
+   23.049809,
+   25.354088,
+   27.695175
+  ],
+  "soloRunoutAge": 80.16666666666667,
+  "soloOutliveProbability": 0.4943352441737752,
+  "actuary": "0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa"
+ },
+ "tests": {
+  "plantedBugs": 59,
+  "plantedTotal": 59
+ },
+ "mortality": {
+  "cohorts": 1846,
+  "countries": 13,
+  "worstAnnuityError": 0.013548182264828679
+ },
+ "replay1965": {
+  "shadow_runout_year": 1977,
+  "shadow_alive_share": 0.4925,
+  "rule4_runout_year": 1996,
+  "members": 2000
+ }
+}
