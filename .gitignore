@@ -17,3 +17,10 @@ __pycache__/
 *.pem
 .next/
 engine/target/
+video/remotion/public/takes
+video/remotion/public/stock
+video/remotion/public/iphone
+video/out/
+video/remotion/node_modules
+video/record/node_modules
+video/data/mixkit-scan.json
