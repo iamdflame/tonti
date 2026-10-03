@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { countries } from '@/sdk/countries.ts';
 import type { Quote } from '@/sdk/quote.ts';
@@ -81,6 +81,24 @@ export function Hero() {
   const title = who === 'mother' ? t.hero.title : who === 'father' ? t.hero.titleFather : t.hero.titleMe;
   const lead = who === 'mother' ? t.hero.lead : who === 'father' ? t.hero.leadFather : t.hero.leadMe;
 
+  // The chain client loads with the first touch of the form, not with the page (the landing stays
+  // light) and not with the tap on Ask (which then waits only for the chain).
+  const warm = () => {
+    void import('@/sdk/quote.ts');
+    void import('@/lib/chain');
+    void import('viem/actions');
+  };
+  const result = useRef<HTMLDivElement>(null);
+  // On a wide screen the answer opens beside the headline, above a visitor who has scrolled down to
+  // the form; on a phone it opens below the form. Either way, bring it into view.
+  useEffect(() => {
+    if (state.kind !== 'done' && state.kind !== 'error') return;
+    const el = result.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.top < 64 || r.top > window.innerHeight * 0.6) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }, [state.kind, reduce]);
+
   const ask = async (e: React.FormEvent) => {
     e.preventDefault();
     setState({ kind: 'asking' });
@@ -123,7 +141,7 @@ export function Hero() {
             {title}
           </h1>
           <p className="mt-5 max-w-[34rem] text-body-l text-mist">{lead}</p>
-          <form onSubmit={ask} className="mt-8 grid gap-5 rounded-2xl bg-night/80 p-4 ring-1 ring-white/12 sm:p-6" noValidate>
+          <form onSubmit={ask} onPointerEnter={warm} onFocus={warm} className="mt-8 grid gap-5 rounded-2xl bg-night/80 p-4 ring-1 ring-white/12 sm:p-6" noValidate>
             <fieldset>
               <legend className="mb-2 text-caption font-bold text-mist">{t.form.who}</legend>
               <div className="grid grid-cols-3 gap-2" role="radiogroup">
@@ -178,7 +196,7 @@ export function Hero() {
           </form>
         </div>
 
-        <div className="lg:pt-6" aria-live="polite">
+        <div ref={result} className="scroll-mt-20 lg:pt-6" aria-live="polite">
             {a && (
               <div key={`${a.block}-${a.q.incomeStart.p50}`} className={`space-y-6 rounded-3xl bg-night/88 p-5 ring-1 ring-white/10 sm:p-7 ${reduce ? 'animate-in fade-in duration-200' : 'animate-in fade-in slide-in-from-bottom-3 duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]'}`}>
                 <div>
