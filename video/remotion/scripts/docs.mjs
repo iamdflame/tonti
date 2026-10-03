@@ -158,6 +158,8 @@ ${SFX.sort((a, b) => a[0] - b[0]).map(([f, what, prompt]) => `| ${tc(f)} | ${wha
 - **Explanations** (the map, the sleeves, the lights, the checklist) are motion design, drawn from the same facts.
 `);
 writeFileSync('../docs/VOICEOVER.md', vo.join(''));
+// The voice cues as data, for scripts/mix.sh: where each line starts, and how long it may run.
+writeFileSync('../docs/cues.json', JSON.stringify({ fps: FPS, seconds: TOTAL / FPS, scenes: SCENES.map((s) => ({ id: s.id, voIn: (startOf(s.id) + 12) / FPS, fits: (s.frames - 12) / FPS })) }, null, 1) + '\n');
 
 // ---------------------------------------------------------------- TIMELINE.md
 const tl = [`# Tonti demo video: timeline
