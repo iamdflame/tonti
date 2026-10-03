@@ -7,41 +7,36 @@ const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 /** 0→1 over [start, start+dur] frames with the house ease-out. */
 export const prog = (f: number, start: number, dur: number, easing = out) => interpolate(f, [start, start + dur], [0, 1], { ...clamp, easing });
 
-/** Subtle animated film grain: keeps flat dusk gradients from banding and ties footage to UI. */
-export function Grain({ opacity = 0.06 }: { opacity?: number }) {
-  const f = useCurrentFrame();
-  const seed = Math.floor(f / 2) % 97;
-  return (
-    <AbsoluteFill style={{ pointerEvents: 'none', mixBlendMode: 'overlay', opacity }}>
-      <svg width="100%" height="100%">
-        <filter id={`g${seed}`}>
-          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves={2} seed={seed} stitchTiles="stitch" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter={`url(#g${seed})`} />
-      </svg>
-    </AbsoluteFill>
-  );
+/** Film grain is added in the final encode (scripts/render.mjs, ffmpeg's noise filter): in software
+ * rendering every full-screen layer costs about half a second a frame. Kept so scenes can mark where
+ * grain belongs. */
+export function Grain(_: { opacity?: number }) {
+  return null;
 }
 
 export function Vignette({ strength = 0.55 }: { strength?: number }) {
   return <AbsoluteFill style={{ pointerEvents: 'none', background: `radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(5,10,22,${strength}) 100%)` }} />;
 }
 
-/** Stock footage with a slow push and the dusk grade, so it sits in the same world as the UI. */
-export function Footage({ src, from = 0, push = 0.08, drift = [0, 0], grade = 0.32, style }: { src: string; from?: number; push?: number; drift?: [number, number]; grade?: number; style?: CSSProperties }) {
+/** Stock footage with a slow push and the dusk grade, so it sits in the same world as the UI. The
+ * grade, the vignette and an optional left shade (for type) are one layer: each extra full-screen
+ * layer costs about half a second a frame in software rendering. */
+export function Footage({ src, from = 0, push = 0.08, drift = [0, 0], grade = 0.32, shade = 0, style }: { src: string; from?: number; push?: number; drift?: [number, number]; grade?: number; shade?: number; style?: CSSProperties }) {
   const f = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const t = f / Math.max(1, durationInFrames);
   const s = 1.04 + push * t;
+  const layers = [
+    `radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(5,10,22,0.55) 100%)`,
+    ...(shade ? [`linear-gradient(90deg, rgba(8,14,28,${shade}) 0%, rgba(8,14,28,${shade * 0.48}) 38%, transparent 62%)`] : []),
+    `linear-gradient(180deg, rgba(13,26,48,${grade * 1.25}) 0%, rgba(19,35,63,${grade * 0.75}) 55%, rgba(242,120,92,${grade * 0.16}) 100%)`,
+  ];
   return (
     <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: C.night, ...style }}>
       <AbsoluteFill style={{ transform: `scale(${s}) translate(${drift[0] * t}px, ${drift[1] * t}px)` }}>
         <OffthreadVideo src={staticFile(src)} startFrom={from} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </AbsoluteFill>
-      <AbsoluteFill style={{ background: `linear-gradient(180deg, rgba(13,26,48,${grade}) 0%, rgba(19,35,63,${grade * 0.6}) 55%, rgba(242,120,92,${grade * 0.18}) 100%)`, mixBlendMode: 'multiply' }} />
-      <AbsoluteFill style={{ background: `rgba(13,26,48,${grade * 0.35})` }} />
-      <Vignette />
+      <AbsoluteFill style={{ background: layers.join(', ') }} />
     </AbsoluteFill>
   );
 }

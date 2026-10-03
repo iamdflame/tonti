@@ -1,10 +1,10 @@
 // Renders each scene to its own file (out/scenes/S01.mp4 …), bundling once and skipping scenes
 // already rendered, so a crash or a reboot costs one scene, not the whole cut. Then joins them
-// (no re-encode) into out/picture-lock.mp4.
+// with the grain and a captioned copy (scripts/finish.sh).
 //   node scripts/render.mjs [S04 S07 …]   (only these, even if rendered)
 import { bundle } from '@remotion/bundler';
 import { renderMedia, selectComposition } from '@remotion/renderer';
-import { existsSync, mkdirSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, renameSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 
@@ -30,9 +30,6 @@ for (const id of ids) {
   renameSync(file + '.part.mp4', file);
   console.log(`${id} done: ${composition.durationInFrames} frames in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
 }
-const list = ids.map((id) => `file '${join(dir, id + '.mp4')}'`).join('\n') + '\n';
-writeFileSync(join(dir, 'list.txt'), list);
 if (ids.every((id) => existsSync(join(dir, `${id}.mp4`)))) {
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', join(dir, 'list.txt'), '-c', 'copy', '-movflags', '+faststart', join(OUT, 'picture-lock.mp4')]);
-  console.log('picture-lock', join(OUT, 'picture-lock.mp4'));
+  execFileSync(resolve('scripts/finish.sh'), { stdio: 'inherit' });
 }

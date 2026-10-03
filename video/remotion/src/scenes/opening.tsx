@@ -14,16 +14,15 @@ export function S01() {
     <AbsoluteFill style={{ backgroundColor: C.night }}>
       <Sequence durationInFrames={150}>
         <AbsoluteFill style={{ opacity: fade(f, 150, 18, 10) }}>
-          <Footage src="stock/commons-mbs-skypark.webm" push={0.1} drift={[-30, 0]} grade={0.2} />
+          <Footage src="stock/commons-mbs-skypark-30.mp4" push={0.1} drift={[-30, 0]} grade={0.2} shade={0.62} />
         </AbsoluteFill>
       </Sequence>
       <Sequence from={140} durationInFrames={130}>
-        <Sub len={130}><Footage src="stock/commons-tampines.webm" from={150} push={0.06} grade={0.42} /></Sub>
+        <Sub len={130}><Footage src="stock/commons-tampines-30.mp4" from={150} push={0.06} grade={0.42} shade={0.62} /></Sub>
       </Sequence>
       <Sequence from={260} durationInFrames={130}>
-        <Sub len={130} outt={0}><Footage src="stock/commons-mbs-skypark.webm" from={255} push={0.08} drift={[20, 0]} grade={0.24} /></Sub>
+        <Sub len={130} outt={0}><Footage src="stock/commons-mbs-skypark-30.mp4" from={255} push={0.08} drift={[20, 0]} grade={0.24} shade={0.62} /></Sub>
       </Sequence>
-      <AbsoluteFill style={{ background: 'linear-gradient(90deg, rgba(8,14,28,0.62) 0%, rgba(8,14,28,0.3) 38%, transparent 62%)' }} />
       <AbsoluteFill style={{ padding: '0 140px', justifyContent: 'center' }}>
         <Sequence from={22} durationInFrames={250} layout="none">
           <Out len={250}>

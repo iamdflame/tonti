@@ -205,7 +205,7 @@ export function S10() {
       </Sequence>
       <Sequence from={sunsetFrom} durationInFrames={110}>
         <AbsoluteFill style={{ opacity: interpolate(f - sunsetFrom, [0, 14], [0, 1], clamp) }}>
-          <Footage src="stock/mixkit-4119.mp4" from={30} push={0.06} grade={0.18} />
+          <Footage src="stock/mixkit-4119-30.mp4" from={30} push={0.06} grade={0.18} />
         </AbsoluteFill>
       </Sequence>
       <Sequence from={endFrom}>
