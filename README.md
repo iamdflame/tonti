@@ -4,6 +4,8 @@ Singapore employs **1,635,700 foreign workers** (Ministry of Manpower, Dec 2025)
 
 Tonti pays **USDG income for as long as you live**: to you, or to the mother you fund from your wage. It invests in the S&P 500 and US Treasury bills on Robinhood Chain. When a member dies, what they had at risk is shared among the members still alive. That sharing is what lets it pay more than you could safely draw alone, for life, with no insurer in the middle.
 
+**Watch the 3-minute demo: [youtu.be/z-4RYJNPF18](https://youtu.be/z-4RYJNPF18).**
+
 **Ask it: [tonti-life.vercel.app](https://tonti-life.vercel.app)** (English and Filipino). Enter your mother's age, country and savings. A contract on Robinhood Chain simulates 512 possible lifetimes inside one `eth_call` and answers in about a second. "Run it yourself" shows the exact call and repeats it against a public node that we don't run.
 
 ## Why it has to be on-chain
