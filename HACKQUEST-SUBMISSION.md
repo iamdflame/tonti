@@ -248,3 +248,44 @@ First settlement (invested): https://robinhoodchain.blockscout.com/tx/0x97a8a6c1
 - [ ] Deployment details filled in (judges only).
 - [ ] All 8 checkpoints added.
 - [ ] Repo is public: https://github.com/iamdflame/tonti
+
+---
+
+## Submit Project form (the final step)
+
+**Project:** Tonti
+
+**What is your contract address?** The TontiPool, the pool members join:
+```
+0xfde46333804f2ea5167bdb7f8f7408ab0cee6308
+```
+
+**Prize tracks:** tick all three: **Overall Prize**, **Promising Products Track** and **Grants**.
+
+**Link to frontend/UI/website** (148/300)
+```
+https://tonti-life.vercel.app (live app, English and Filipino) · demo video: https://youtu.be/z-4RYJNPF18 · code: https://github.com/iamdflame/tonti
+```
+
+**Core Protocol / Smart Contract Addresses** (296/300)
+```
+Robinhood Chain mainnet (4663): Actuary (Stylus/Rust, sealed mortality) 0x1464069e9f1110e6f0f52231a2c1f87c2fc9ccaa; LifeRegistry 0x97e1D2f4E7d0B86aa85dc6691EA5cBF7175fC03D; AttestedIdentity 0xd715390236b1f3c43689D74ab61b34B09E5aa1C7; Timelock (owns all) 0x5986346B942D30C8Bdc9CB75a4F230140Ce5C504
+```
+
+**Factory / Pool Contracts** (234/300)
+```
+TontiPool (Stylus/Rust: members, cohorts, monthly settlement, mortality credits) 0xfde46333804f2ea5167bdb7f8f7408ab0cee6308; Treasury (holds the pool's SPY, SGOV and Morpho USDG) 0xb1273Eda4380039CaaBDAb79b1Ad756EEf1412Bc. No factory.
+```
+
+**Token Contract Address** (243/300)
+```
+No Tonti token. All money in and out is Paxos USDG 0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168. The pool invests in Robinhood Chain stock tokens SPY 0x117cc2133c37B721F49dE2A7a74833232B3B4C0C and SGOV 0x92FD66527192E3e61d4DDd13322Aa222DE86F9B5.
+```
+
+**Which parts of your code were produced during the Buildathon?** (263/300)
+```
+All of it, built for this buildathon: the Stylus Actuary and TontiPool (Rust), the Solidity Treasury, LifeRegistry and AttestedIdentity, the ink meter, mortality fits, keeper, TypeScript SDK, the bilingual web app, tests and the mainnet deploys (Sep 26 to Oct 3).
+```
+
+**Sponsor/partner technologies:** tick **Robinhood Chain**, **Paxos/USDG** and **OpenZeppelin** (TimelockController, EIP-712, ECDSA, P-256, Base64).
+- Leave **Alchemy** unticked: the sponsored-gas integration is built but switched off until there is a gas policy, so it isn't in use.
