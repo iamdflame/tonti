@@ -43,6 +43,8 @@ for r in rows:
 
 known = {v.lower() for v in [dep[k] for k in ('actuary', 'pool', 'treasury', 'lifeRegistry', 'attestedIdentity', 'timelock', 'usdg', 'deployer')]}
 known |= {t['hash'].lower() for t in facts['txs'].values()} | {c['hash'].lower() for c in facts['checkins']}
+cfg = json.loads((ROOT / 'config' / 'robinhood-mainnet.json').read_text())
+known |= {v['address'].lower() for v in cfg['tokens'].values()}
 for h in set(re.findall(r'0x[0-9a-fA-F]{40}(?:[0-9a-fA-F]{24})?\b', md)):
     if h.lower() not in known:
         bad.append(f'unknown address or hash {h}')
